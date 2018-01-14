@@ -3,18 +3,23 @@
 
 #include <stdbool.h>
 
-//#include "card.h"
+#include "card.h"
 
-struct shoe
+#define CARDS_PER_DECK 52
+#define MAX_DECKS 8
+
+const unsigned shuffle_specs[8][2];
+
+typedef struct
 {
-  int number_decks;
-  //Card cards[416];
-};
-
-typedef struct shoe Shoe;
-  
-bool need_to_shuffle();
-void shuffle();
-void new_regular();
+  unsigned current_card;
+  unsigned number_decks;
+  Card cards[CARDS_PER_DECK * MAX_DECKS];
+} Shoe;
+ 
+bool need_to_shuffle(Shoe *shoe);
+void shuffle(Shoe *shoe);
+void new_regular(Shoe *shoe);
+Card *get_next_card(Shoe *shoe);
 
 #endif

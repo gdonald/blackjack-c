@@ -7,7 +7,14 @@ int main()
   int status = 0;
 
   bt_off();
-  status = run();
+
+  /*
+  shoe = {};
+  dealer_hand = {};
+  player_hands[MAX_PLAYER_HANDS] = Hand[];
+  */
+  
+  status = run(&shoe, &dealer_hand, player_hands);
   bt_on();
 
   return status;
