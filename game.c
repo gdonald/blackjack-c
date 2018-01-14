@@ -2,7 +2,10 @@
 
 void deal_new_hand()
 {
-  
+  if(need_to_shuffle())
+  {
+    shuffle();
+  }
 }
 
 int run()
