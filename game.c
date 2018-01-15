@@ -1,6 +1,6 @@
 #include "game.h"
 
-void deal_new_hand(Shoe *shoe, Hand *dealer_hand, Hand *player_hands)
+void deal_new_hand(Shoe *shoe, DealerHand *dealer_hand, PlayerHand *player_hands)
 {
   if(need_to_shuffle(shoe))
   {
@@ -12,12 +12,12 @@ void deal_new_hand(Shoe *shoe, Hand *dealer_hand, Hand *player_hands)
   Card c2 = {};
   dealer_hand->cards[1] = c2;
 
-  Hand h;
-  player_hands[0] = h;
+  PlayerHand ph;
+  player_hands[0] = ph;
 
 }
 
-int run(Shoe *shoe, Hand *dealer_hand, Hand *player_hands)
+int run(Shoe *shoe, DealerHand *dealer_hand, PlayerHand *player_hands)
 {
 
   deal_new_hand(shoe, dealer_hand, player_hands);

@@ -7,13 +7,14 @@
 #include <time.h>
 
 #include "shoe.h"
-#include "hand.h"
+#include "dealer_hand.h"
+#include "player_hand.h"
 
 Shoe shoe;
-Hand dealer_hand;
-Hand player_hands[MAX_PLAYER_HANDS];
+DealerHand dealer_hand;
+PlayerHand player_hands[MAX_PLAYER_HANDS];
 
-int run(Shoe *shoe, Hand *dealer_hand, Hand *player_hands);
-void deal_new_hand(Shoe *shoe, Hand *dealer_hand, Hand *player_hands);
+int run(Shoe *shoe, DealerHand *dealer_hand, PlayerHand *player_hands);
+void deal_new_hand(Shoe *shoe, DealerHand *dealer_hand, PlayerHand *player_hands);
 
 #endif

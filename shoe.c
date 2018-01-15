@@ -30,7 +30,7 @@ void new_regular(Shoe *shoe)
   shoe->current_card = 0;
 }
 
-Card *get_next_card(Shoe *shoe)
-{
-  return &shoe->cards[shoe->current_card++];
+Card get_next_card(Shoe *shoe)
+{ 
+  return shoe->cards[shoe->current_card++];
 }

@@ -20,6 +20,6 @@ typedef struct
 bool need_to_shuffle(Shoe *shoe);
 void shuffle(Shoe *shoe);
 void new_regular(Shoe *shoe);
-Card *get_next_card(Shoe *shoe);
+Card get_next_card(Shoe *shoe);
 
 #endif
