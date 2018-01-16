@@ -13,7 +13,6 @@ const unsigned shuffle_specs[8][2];
 typedef struct
 {
   unsigned current_card;
-  unsigned number_decks;
   Card cards[CARDS_PER_DECK * MAX_DECKS];
 } Shoe;
  

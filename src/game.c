@@ -1,5 +1,9 @@
 #include "game.h"
 
+unsigned num_decks = 1;
+unsigned money = 10000;
+unsigned current_bet = 500;
+
 void deal_new_hand(Shoe *shoe, DealerHand *dealer_hand, PlayerHand *player_hands)
 {
   if(need_to_shuffle(shoe))
