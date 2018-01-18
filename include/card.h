@@ -3,8 +3,8 @@
 
 #include <stdbool.h>
 
-char *faces[14][4];
-char *suites[4];
+char *card_faces[14][4];
+char *card_suites[4];
 
 typedef struct
 {
@@ -13,8 +13,8 @@ typedef struct
   char *suite;
 } Card;
 
-bool is_ace(Card *card);
-bool is_ten(Card *card);
-char *to_s(Card *card);
+bool card_is_ace(Card *card);
+bool card_is_ten(Card *card);
+char *card_to_string(Card *card);
 
 #endif

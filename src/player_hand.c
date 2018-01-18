@@ -1,23 +1,23 @@
 #include "player_hand.h"
 
-bool ph_is_busted(PlayerHand *hand)
+bool player_is_busted(PlayerHand *hand)
 {
-  return ph_get_value(hand, Soft) > 21;
+  return player_get_value(hand, Soft) > 21;
 }
 
-bool ph_is_blackjack(PlayerHand *hand)
+bool player_is_blackjack(PlayerHand *hand)
 {
   if(hand->num_cards != 2)
   {
     return false;
   }
 
-  if(is_ace(&hand->cards[0]) && is_ten(&hand->cards[1]))
+  if(card_is_ace(&hand->cards[0]) && card_is_ten(&hand->cards[1]))
   {
     return true;
   }
 
-  if(is_ace(&hand->cards[1]) && is_ten(&hand->cards[0]))
+  if(card_is_ace(&hand->cards[1]) && card_is_ten(&hand->cards[0]))
   {
     return true;
   }
@@ -25,9 +25,9 @@ bool ph_is_blackjack(PlayerHand *hand)
   return false;
 }
 
-bool ph_is_done(PlayerHand *hand)
+bool player_is_done(PlayerHand *hand)
 {
-  if(ph_is_busted(hand))
+  if(player_is_busted(hand))
   {
     return true;
   }
@@ -35,7 +35,7 @@ bool ph_is_done(PlayerHand *hand)
   return false;
 }
 
-unsigned ph_get_value(PlayerHand *hand, CountMethod method)
+unsigned player_get_value(PlayerHand *hand, CountMethod method)
 {
   unsigned v = 0;
   unsigned total = 0;
@@ -55,19 +55,41 @@ unsigned ph_get_value(PlayerHand *hand, CountMethod method)
 
   if(method == Soft && total > 21)
   {
-    return ph_get_value(hand, Hard);
+    return player_get_value(hand, Hard);
   }
 
   return total;
 }
 
-void ph_deal_card(PlayerHand *hand, Shoe *shoe)
+void player_deal_card(PlayerHand *hand, Shoe *shoe)
 {
-  Card c = get_next_card(shoe);
+  Card c = deal_card(shoe);
   hand->cards[hand->num_cards++] = c;
 }
 
-void ph_draw(PlayerHand *hand)
+void player_draw(PlayerHand *hand)
 {
-  printf("%d", ph_get_value(hand, Soft));
+  printf("%d", player_get_value(hand, Soft));
+}
+
+void player_get_action(PlayerHand *hand)
+{
+  printf(" ");
+
+  if(player_can_hit(hand))
+  {
+    printf("(H) Hit  ");
+  }
+
+  // TODO:
+}
+
+bool player_can_hit(PlayerHand *hand)
+{
+  if(hand->played || hand->stood || 21 == player_get_value(hand, Hard) || player_is_blackjack(hand) || player_is_busted(hand))
+  {
+    return false;
+  }
+
+  return true;
 }

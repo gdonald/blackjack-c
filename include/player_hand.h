@@ -16,13 +16,15 @@ typedef struct
   unsigned num_cards;
 } PlayerHand;
 
-bool ph_is_busted(PlayerHand *hand);
-bool ph_is_blackjack(PlayerHand *hand);
-bool ph_is_done(PlayerHand *hand);
+bool player_is_busted(PlayerHand *hand);
+bool player_is_blackjack(PlayerHand *hand);
+bool player_is_done(PlayerHand *hand);
+bool player_can_hit(PlayerHand *hand);
 
-unsigned ph_get_value(PlayerHand *hand, CountMethod method);
+unsigned player_get_value(PlayerHand *hand, CountMethod method);
 
-void ph_deal_card(PlayerHand *hand, Shoe *shoe);
-void ph_draw(PlayerHand *hand);
+void player_deal_card(PlayerHand *hand, Shoe *shoe);
+void player_draw(PlayerHand *hand);
+void player_get_action(PlayerHand *hand);
 
 #endif

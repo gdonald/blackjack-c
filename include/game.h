@@ -15,5 +15,10 @@
 #include "player_hand.h"
 
 void deal_new_hand();
+void draw_hands();
+void ask_insurance();
+void pay_hands();
+void bet_options();
+void save_game();
 
 #endif

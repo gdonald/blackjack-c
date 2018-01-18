@@ -5,14 +5,18 @@
 
 #include "hand.h"
 #include "card.h"
+#include "shoe.h"
 
 typedef struct
 {
-  bool stood;
-  bool played;
   Card cards[MAX_CARDS_PER_HAND];
   unsigned num_cards;
+  bool hide_down_card;
 } DealerHand;
 
+void dealer_deal_card(DealerHand *hand, Shoe *shoe);
+
+bool dealer_upcard_is_ace(DealerHand *dealer_hand);
+bool dealer_is_done(DealerHand *hand);
 
 #endif
