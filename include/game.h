@@ -14,11 +14,18 @@
 #include "dealer_hand.h"
 #include "player_hand.h"
 
+unsigned money;
+unsigned current_bet;
+unsigned total_player_hands;
+
 void deal_new_hand();
 void draw_hands();
 void ask_insurance();
 void pay_hands();
 void bet_options();
 void save_game();
+void clear();
+
+unsigned all_bets();
 
 #endif

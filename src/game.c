@@ -72,6 +72,16 @@ void save_game()
 
 }
 
+void clear()
+{
+
+}
+
+unsigned all_bets()
+{
+  return 0;
+}
+
 int main()
 {
   srand(time(NULL));
