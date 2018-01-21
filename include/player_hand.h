@@ -13,10 +13,14 @@ typedef struct
 {
   bool stood;
   bool played;
+  bool payed;
   Card cards[MAX_CARDS_PER_HAND];
   unsigned num_cards;
   unsigned bet;
+  HandStatus status;
 } PlayerHand;
+
+extern PlayerHand player_hands[MAX_PLAYER_HANDS];
 
 bool player_is_busted(PlayerHand *hand);
 bool player_is_blackjack(PlayerHand *hand);
@@ -28,12 +32,12 @@ bool player_can_dbl(PlayerHand *hand);
 
 unsigned player_get_value(PlayerHand *hand, CountMethod method);
 
-void player_deal_card(PlayerHand *hand, Shoe *shoe);
-void player_draw(PlayerHand *hand);
+void player_deal_card(PlayerHand *hand);
 void player_get_action(PlayerHand *hand);
 void player_hit(PlayerHand *hand);
 void player_stand(PlayerHand *hand);
 void player_split(PlayerHand *hand);
 void player_dbl(PlayerHand *hand);
+void player_draw_hand(unsigned index);
 
 #endif

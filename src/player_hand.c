@@ -61,15 +61,10 @@ unsigned player_get_value(PlayerHand *hand, CountMethod method)
   return total;
 }
 
-void player_deal_card(PlayerHand *hand, Shoe *shoe)
+void player_deal_card(PlayerHand *hand)
 {
-  Card c = deal_card(shoe);
+  Card c = deal_card();
   hand->cards[hand->num_cards++] = c;
-}
-
-void player_draw(PlayerHand *hand)
-{
-  printf("%d", player_get_value(hand, Soft));
 }
 
 void player_get_action(PlayerHand *hand)
@@ -103,24 +98,30 @@ void player_get_action(PlayerHand *hand)
 
   while(true)
   {
+    c = getchar();
+    
     switch(c)
     {
     case 'h':
       br = true;
       player_hit(hand);
       break;
+
     case 's':
       br = true;
       player_stand(hand);
       break;
+
     case 'p':
       br = true;
       player_split(hand);
       break;
+
     case 'd':
       br = true;
       player_dbl(hand);
       break;
+
     default:
       br = true;
       clear();
@@ -192,20 +193,150 @@ bool player_can_dbl(PlayerHand *hand)
 
 void player_hit(PlayerHand *hand)
 {
+  player_deal_card(hand);
 
+  if(player_is_done(hand))
+  {
+    process();
+    return;
+  }
+
+  draw_hands();
+  player_get_action(&player_hands[current_player_hand]);
 }
 
 void player_stand(PlayerHand *hand)
 {
+  hand->stood = true;
+  hand->played = true;
 
+  if(more_hands_to_play())
+  {
+    play_more_hands();
+    return;
+  }
+
+  play_dealer_hand();
+  draw_hands();
+  bet_options();
 }
 
 void player_split(PlayerHand *hand)
 {
+  if(!player_can_split(hand))
+  {
+    draw_hands();
+    player_get_action(hand);
+    return;
+  }
 
+  PlayerHand new_hand = {};
+  player_hands[current_player_hand + 1] = new_hand;
+  ++total_player_hands;
+
+  // expand hands
+  unsigned x = total_player_hands - 1;
+  while(x > current_player_hand)
+  {
+    player_hands[x] = player_hands[x - 1];
+    --x;
+  }
+
+  // split
+  PlayerHand *this_hand = &player_hands[current_player_hand];
+  PlayerHand *split_hand = &player_hands[current_player_hand + 1];
+
+  Card c = this_hand->cards[1];
+  split_hand->cards[0] = c;
+  split_hand->num_cards = 1;
+  this_hand->num_cards = 1;
+
+  player_deal_card(this_hand);
+
+  if(player_is_done(this_hand))
+  {
+    process();
+    return;
+  }
+
+  draw_hands();
+  player_get_action(&player_hands[current_player_hand]);
 }
 
 void player_dbl(PlayerHand *hand)
 {
+  player_deal_card(hand);
+  hand->played = true;
+  hand->bet *= 2;
 
+  if(player_is_done(hand))
+  {
+    process();
+  }
+}
+
+void player_draw_hand(unsigned index)
+{
+  //printf("total_player_hands: %d\n", total_player_hands);
+  
+  PlayerHand *hand = &player_hands[index];
+
+  printf(" ");
+
+  printf("hand->num_cards: %d", hand->num_cards);
+  
+  for(unsigned i = 0; i < hand->num_cards; ++i)
+  {
+    Card *c = &hand->cards[i];
+    printf("%s ", card_faces[c->value][c->suite_value]);
+  }
+
+  printf(" ⇒  %d  ", player_get_value(hand, Soft));
+
+  if(hand->status == Lost)
+  {
+    printf("-");
+  }
+  else if(hand->status == Won)
+  {
+    printf("+");
+  }
+
+  printf("$%.2f", (float)(hand->bet / 100.0));
+
+  if(!hand->played && index == current_player_hand)
+  {
+    printf(" ⇐");
+  }
+
+  printf("  ");
+
+  if(hand->status == Lost)
+  {
+    if(player_is_busted(hand))
+    {
+      printf("Busted!");
+    }
+    else
+    {
+      printf("Lose!");
+    }
+  }
+  else if(hand->status == Won)
+  {
+    if(player_is_blackjack(hand))
+    {
+      printf("Blackjack!");
+    }
+    else
+    {
+      printf("Won!");
+    }
+  }
+  else if(hand->status == Push)
+  {
+    printf("Push");
+  }
+  
+  printf("\n\n");
 }
