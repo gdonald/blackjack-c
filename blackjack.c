@@ -1,3 +1,4 @@
+
 #define CARDS_PER_DECK 52
 #define MAX_CARDS_PER_HAND 11
 #define MAX_DECKS 8
@@ -10,8 +11,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <termios.h>
-#include <unistd.h>
 
 const unsigned shuffle_specs[8][2];
 
