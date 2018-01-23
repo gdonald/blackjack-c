@@ -10,21 +10,17 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <termios.h>
 #include <time.h>
-
-const unsigned shuffle_specs[8][2];
-
-char *card_faces[14][4];
-char *card_suites[4];
+#include <unistd.h>
 
 typedef enum { Soft, Hard } CountMethod;
-typedef enum { Unknown, Won, Lost, Push } HandStatus;
+typedef enum { Won=1, Lost, Push } HandStatus;
 
 typedef struct
 {
   unsigned value;
-  unsigned suite_value;
-  char *suite;
+  unsigned suite;
 } Card;
 
 typedef struct
@@ -52,11 +48,14 @@ typedef struct
   Card cards[MAX_CARDS_PER_HAND];
 } PlayerHand;
 
-unsigned num_decks = 1;
+struct termios term;
+
+unsigned num_decks = 8;
 unsigned money = 10000;
 unsigned current_bet = 500;
 unsigned current_player_hand = 0;
 unsigned total_player_hands = 0;
+unsigned total_cards_in_shoe = 0;
 
 Shoe shoe = {};
 DealerHand dealer_hand = {};
@@ -71,20 +70,20 @@ const unsigned shuffle_specs[8][2] = { { 95, 8 },
 				       { 81, 2 },
 				       { 80, 1 } };
 
-char *card_faces[14][4] = { { "🂡", "🂱", "🃁", "🃑" },
-			    { "🂢", "🂲", "🃂", "🃒" },
-			    { "🂣", "🂳", "🃃", "🃓" },
-			    { "🂤", "🂴", "🃄", "🃔" },
-			    { "🂥", "🂵", "🃅", "🃕" },
-			    { "🂦", "🂶", "🃆", "🃖" },
-			    { "🂧", "🂷", "🃇", "🃗" },
-			    { "🂨", "🂸", "🃈", "🃘" },
-			    { "🂩", "🂹", "🃉", "🃙" },
-			    { "🂪", "🂺", "🃊", "🃚" },
-			    { "🂫", "🂻", "🃋", "🃛" },
-			    { "🂭", "🂽", "🃍", "🃝" },
-			    { "🂮", "🂾", "🃎", "🃞" },
-			    { "🂠", "",  "",  ""  }, };
+const char *card_faces[14][4] = { { "🂡", "🂱", "🃁", "🃑" },
+				  { "🂢", "🂲", "🃂", "🃒" },
+				  { "🂣", "🂳", "🃃", "🃓" },
+				  { "🂤", "🂴", "🃄", "🃔" },
+				  { "🂥", "🂵", "🃅", "🃕" },
+				  { "🂦", "🂶", "🃆", "🃖" },
+				  { "🂧", "🂷", "🃇", "🃗" },
+				  { "🂨", "🂸", "🃈", "🃘" },
+				  { "🂩", "🂹", "🃉", "🃙" },
+				  { "🂪", "🂺", "🃊", "🃚" },
+				  { "🂫", "🂻", "🃋", "🃛" },
+				  { "🂭", "🂽", "🃍", "🃝" },
+				  { "🂮", "🂾", "🃎", "🃞" },
+				  { "🂠", "",  "",  ""  }, };
 
 void play_more_hands();
 void bet_options();
@@ -358,7 +357,34 @@ void normalize_bet()
 
 void save_game()
 {
+  FILE *fp = fopen(SAVE_FILE, "w");
 
+  if(fp != NULL)
+  {
+    fprintf(fp, "%d\n%d\n%d\n", num_decks, money, current_bet);
+    fclose(fp);
+  }
+}
+
+void load_game()
+{
+  FILE *fp = fopen(SAVE_FILE, "r");
+
+  if(fp != NULL)
+  {
+    char buffer[32];
+
+    fgets(buffer, sizeof(buffer), fp);
+    sscanf(buffer, "%d", &num_decks);
+
+    fgets(buffer, sizeof(buffer), fp);
+    sscanf(buffer, "%d", &money);
+
+    fgets(buffer, sizeof(buffer), fp);
+    sscanf(buffer, "%d", &current_bet);
+
+    fclose(fp);
+  }
 }
 
 void pay_hands()
@@ -457,7 +483,7 @@ void draw_dealer_hand()
     else
     {
       Card *card = &dealer_hand.cards[i];
-      printf("%s ", card_faces[card->value][card->suite_value]);
+      printf("%s ", card_faces[card->value][card->suite]);
     }
   }
 
@@ -473,7 +499,7 @@ void player_draw_hand(unsigned index)
   for(unsigned i = 0; i < hand->num_cards; ++i)
   {
     Card *c = &hand->cards[i];
-    printf("%s ", card_faces[c->value][c->suite_value]);
+    printf("%s ", card_faces[c->value][c->suite]);
   }
 
   printf(" ⇒  %d  ", player_get_value(hand, Soft));
@@ -541,8 +567,7 @@ void draw_hands()
 
 bool need_to_shuffle()
 {
-  unsigned total_cards = num_decks * CARDS_PER_DECK;
-  unsigned used = (shoe.current_card / (double) total_cards) * 100.0;
+  unsigned used = (shoe.current_card / (double) total_cards_in_shoe) * 100.0;
 
   for(unsigned x = 0; x < 8; ++x)
   {
@@ -564,7 +589,7 @@ void swap(Card *a, Card *b)
 
 void shuffle()
 {
-  for(unsigned i = (num_decks * CARDS_PER_DECK) - 1; i > 0; i--)
+  for(unsigned i = total_cards_in_shoe - 1; i > 0; i--)
   {
     unsigned j = rand() % (i + 1);
     swap(&shoe.cards[i], &shoe.cards[j]);
@@ -617,7 +642,7 @@ void no_insurance()
   }
   
   draw_hands();
-  player_get_action(hand);
+  player_get_action();
 }
 
 void ask_insurance()
@@ -657,9 +682,9 @@ void ask_insurance()
 
 void deal_new_hand()
 {
-  if(need_to_shuffle(&shoe, num_decks))
+  if(need_to_shuffle())
   {
-    shuffle(&shoe, num_decks);
+    shuffle();
   }
   
   PlayerHand player_hand = { .bet=current_bet };
@@ -676,7 +701,7 @@ void deal_new_hand()
   current_player_hand = 0;
   total_player_hands = 1;
   
-  if(dealer_upcard_is_ace(&dealer_hand))
+  if(dealer_upcard_is_ace())
   {
     draw_hands();
     ask_insurance();
@@ -693,7 +718,7 @@ void deal_new_hand()
   }
 
   draw_hands();
-  player_get_action(&player_hand);
+  player_get_action();
   save_game();
 }
 
@@ -766,7 +791,7 @@ void process()
 
 void play_more_hands()
 {
-  PlayerHand *hand = &player_hands[current_player_hand];
+  PlayerHand *hand = &player_hands[++current_player_hand];
   player_deal_card(hand);
 
   if(player_is_done(hand))
@@ -814,20 +839,18 @@ void player_stand()
 
 void player_split()
 {
-  PlayerHand *hand = &player_hands[current_player_hand];
-
-  if(!player_can_split(hand))
+  if(!player_can_split())
   {
     draw_hands();
-    player_get_action(hand);
+    player_get_action();
     return;
   }
 
+  // add a new hand at the end
   PlayerHand new_hand = {};
-  player_hands[current_player_hand + 1] = new_hand;
-  ++total_player_hands;
+  player_hands[total_player_hands++] = new_hand;
 
-  // expand hands
+  // expand hands where split occured
   unsigned x = total_player_hands - 1;
   while(x > current_player_hand)
   {
@@ -835,7 +858,7 @@ void player_split()
     --x;
   }
 
-  // split
+  // split current hand
   PlayerHand *this_hand = &player_hands[current_player_hand];
   PlayerHand *split_hand = &player_hands[current_player_hand + 1];
 
@@ -853,7 +876,7 @@ void player_split()
   }
 
   draw_hands();
-  player_get_action(&player_hands[current_player_hand]);
+  player_get_action();
 }
 
 void player_dbl()
@@ -870,9 +893,9 @@ void player_dbl()
   }
 }
 
-char *card_to_string(Card *card)
+const char *card_to_string(Card *card)
 {
-  return card_faces[card->value][card->suite_value];
+  return card_faces[card->value][card->suite];
 }
 
 void player_get_action()
@@ -954,19 +977,139 @@ void new_regular()
     {
       for(unsigned value = 0; value < 13; ++value)
       {
-	Card c = { value, suite, card_suites[suite] };
+	Card c = { value, suite };
 	shoe.cards[x++] = c;
       }
     }
   }
+
+  total_cards_in_shoe = x;
+}
+
+/*
+void new_aces()
+{
+  unsigned x = 0;
+
+  for(unsigned deck = 0; deck < num_decks * 5 * 13; ++deck)
+  {
+    for(unsigned suite = 0; suite < 4; ++suite)
+    {
+      Card c = { 0, suite };
+      shoe.cards[x++] = c;
+    }
+  }
+
+  total_cards_in_shoe = x;
+}
+*/
+
+/*
+void new_aces_jacks()
+{
+  unsigned x = 0;
+
+  for(unsigned deck = 0; deck < num_decks * 5 * 13; ++deck)
+  {
+    for(unsigned suite = 0; suite < 4; ++suite)
+    {
+      Card c1 = { 0, suite };
+      shoe.cards[x++] = c1;
+      Card c2 = { 10, suite };
+      shoe.cards[x++] = c2;
+    }
+  }
+
+  total_cards_in_shoe = x;
+}
+*/
+
+/*
+void new_jacks()
+{
+  unsigned x = 0;
+
+  for(unsigned deck = 0; deck < num_decks * 5 * 13; ++deck)
+  {
+    for(unsigned suite = 0; suite < 4; ++suite)
+    {
+      Card c = { 10, suite };
+      shoe.cards[x++] = c;
+    }
+  }
+
+  total_cards_in_shoe = x;
+}
+*/
+
+/*
+void new_sevens()
+{
+  unsigned x = 0;
+
+  for(unsigned deck = 0; deck < num_decks * 5 * 13; ++deck)
+  {
+    for(unsigned suite = 0; suite < 4; ++suite)
+    {
+      Card c = { 6, suite };
+      shoe.cards[x++] = c;
+    }
+  }
+
+  total_cards_in_shoe = x;
+}
+*/
+
+/*
+void new_eights()
+{
+  unsigned x = 0;
+
+  for(unsigned deck = 0; deck < num_decks * 5 * 13; ++deck)
+  {
+    for(unsigned suite = 0; suite < 4; ++suite)
+    {
+      Card c = { 7, suite };
+      shoe.cards[x++] = c;
+    }
+  }
+
+  total_cards_in_shoe = x;
+}
+*/
+
+void buffer_off()
+{
+  tcgetattr(STDIN_FILENO, &term);
+  term.c_lflag &= ~ICANON;
+  tcsetattr(STDIN_FILENO, TCSANOW, &term);
+}
+
+void buffer_on()
+{
+  tcgetattr(STDIN_FILENO, &term);
+  term.c_lflag |= ICANON;
+  tcsetattr(STDIN_FILENO, TCSANOW, &term);
 }
 
 int main()
 {
   srand(time(NULL));
-  new_regular(&shoe, num_decks);
-  shuffle(&shoe, num_decks);
-  deal_new_hand(&shoe, &dealer_hand, player_hands);
+  load_game();
+
+  // shoe type
+  new_regular();
+  // new_aces();
+  // new_aces_jacks();
+  // new_jacks();
+  // new_sevens();
+  // new_eights();
+
+  shuffle();
+
+  buffer_off();
+  deal_new_hand();
+  buffer_on();
   
   return 0;
 }
