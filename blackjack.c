@@ -159,7 +159,11 @@ bool player_can_hit()
 {
   PlayerHand *hand = &player_hands[current_player_hand];
 
-  if(hand->played || hand->stood || 21 == player_get_value(hand, Hard) || player_is_blackjack(hand) || player_is_busted(hand))
+  if(hand->played
+     || hand->stood
+     || 21 == player_get_value(hand, Hard)
+     || player_is_blackjack(hand)
+     || player_is_busted(hand))
   {
     return false;
   }
@@ -171,7 +175,9 @@ bool player_can_stand()
 {
   PlayerHand *hand = &player_hands[current_player_hand];
 
-  if(hand->stood || player_is_busted(hand) || player_is_blackjack(hand))
+  if(hand->stood
+     || player_is_busted(hand)
+     || player_is_blackjack(hand))
   {
     return false;
   }
@@ -222,7 +228,10 @@ bool player_can_dbl()
     return false;
   }
 
-  if(hand->stood || hand->num_cards != 2 || player_is_busted(hand) || player_is_blackjack(hand))
+  if(hand->stood
+     || hand->num_cards != 2
+     || player_is_busted(hand)
+     || player_is_blackjack(hand))
   {
     return false;
   }
@@ -246,14 +255,11 @@ bool player_is_done(PlayerHand *hand)
   {
     hand->played = true;
 
-    if(!hand->payed)
+    if(!hand->payed && player_is_busted(hand))
     {
-      if(player_is_busted(hand))
-      {
-	hand->payed = true;
-	hand->status = Lost;
-	money -= hand->bet;
-      }
+      hand->payed = true;
+      hand->status = Lost;
+      money -= hand->bet;
     }
 
     return true;
@@ -524,25 +530,11 @@ void player_draw_hand(unsigned index)
 
   if(hand->status == Lost)
   {
-    if(player_is_busted(hand))
-    {
-      printf("Busted!");
-    }
-    else
-    {
-      printf("Lose!");
-    }
+    printf(player_is_busted(hand) ? "Busted!" : "Lose!");
   }
   else if(hand->status == Won)
   {
-    if(player_is_blackjack(hand))
-    {
-      printf("Blackjack!");
-    }
-    else
-    {
-      printf("Won!");
-    }
+    printf(player_is_blackjack(hand) ? "Blackjack!" : "Won!");
   }
   else if(hand->status == Push)
   {
@@ -569,7 +561,7 @@ bool need_to_shuffle()
 {
   unsigned used = (shoe.current_card / (double) total_cards_in_shoe) * 100.0;
 
-  for(unsigned x = 0; x < 8; ++x)
+  for(unsigned x = 0; x < MAX_DECKS; ++x)
   {
     if(num_decks == shuffle_specs[x][1] && used > shuffle_specs[x][0])
     {
@@ -589,10 +581,13 @@ void swap(Card *a, Card *b)
 
 void shuffle()
 {
-  for(unsigned i = total_cards_in_shoe - 1; i > 0; i--)
+  for(unsigned x = 0; x < 7; x++)
   {
-    unsigned j = rand() % (i + 1);
-    swap(&shoe.cards[i], &shoe.cards[j]);
+    for(unsigned i = total_cards_in_shoe - 1; i > 0; i--)
+    {
+      unsigned j = rand() % (i + 1);
+      swap(&shoe.cards[i], &shoe.cards[j]);
+    }
   }
 
   shoe.current_card = 0;
@@ -673,10 +668,7 @@ void ask_insurance()
       break;
     }
 
-    if(br)
-    {
-      break;
-    }
+    if(br) break;
   }
 }
 
@@ -769,10 +761,7 @@ void bet_options()
       bet_options();
     }
 
-    if(br)
-    {
-      break;
-    }
+    if(br) break;
   }
 }
 
@@ -902,25 +891,10 @@ void player_get_action()
 {
   printf(" ");
 
-  if(player_can_hit())
-  {
-    printf("(H) Hit  ");
-  }
-
-  if(player_can_stand())
-  {
-    printf("(S) Stand  ");
-  }
-
-  if(player_can_split())
-  {
-    printf("(P) Split  ");
-  }
-
-  if(player_can_dbl())
-  {
-    printf("(D) Double  ");
-  }
+  if(player_can_hit())   printf("(H) Hit  ");
+  if(player_can_stand()) printf("(S) Stand  ");
+  if(player_can_split()) printf("(P) Split  ");
+  if(player_can_dbl())   printf("(D) Double  ");
 
   printf("\n");
 
@@ -960,10 +934,7 @@ void player_get_action()
       player_get_action();
     }
 
-    if(br)
-    {
-      break;
-    }
+    if(br) break;
   }
 }
 
@@ -991,7 +962,7 @@ void new_aces()
 {
   unsigned x = 0;
 
-  for(unsigned deck = 0; deck < num_decks * 5 * 13; ++deck)
+  for(unsigned deck = 0; deck < num_decks * 5; ++deck)
   {
     for(unsigned suite = 0; suite < 4; ++suite)
     {
@@ -1009,7 +980,7 @@ void new_aces_jacks()
 {
   unsigned x = 0;
 
-  for(unsigned deck = 0; deck < num_decks * 5 * 13; ++deck)
+  for(unsigned deck = 0; deck < num_decks * 4; ++deck)
   {
     for(unsigned suite = 0; suite < 4; ++suite)
     {
@@ -1029,7 +1000,7 @@ void new_jacks()
 {
   unsigned x = 0;
 
-  for(unsigned deck = 0; deck < num_decks * 5 * 13; ++deck)
+  for(unsigned deck = 0; deck < num_decks * 5; ++deck)
   {
     for(unsigned suite = 0; suite < 4; ++suite)
     {
@@ -1047,7 +1018,7 @@ void new_sevens()
 {
   unsigned x = 0;
 
-  for(unsigned deck = 0; deck < num_decks * 5 * 13; ++deck)
+  for(unsigned deck = 0; deck < num_decks * 5; ++deck)
   {
     for(unsigned suite = 0; suite < 4; ++suite)
     {
@@ -1065,7 +1036,7 @@ void new_eights()
 {
   unsigned x = 0;
 
-  for(unsigned deck = 0; deck < num_decks * 5 * 13; ++deck)
+  for(unsigned deck = 0; deck < num_decks * 5; ++deck)
   {
     for(unsigned suite = 0; suite < 4; ++suite)
     {
@@ -1099,6 +1070,7 @@ int main()
 
   // shoe type
   new_regular();
+
   // new_aces();
   // new_aces_jacks();
   // new_jacks();
