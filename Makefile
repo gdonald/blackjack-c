@@ -1,8 +1,8 @@
 CC = clang
 #CC = gcc
-CC_FLAGS = -Wall -Wextra -std=c11 -O0 -g
+CC_FLAGS = -Wall -Wextra -std=c11 -O0 -g -Iinclude
 EXEC = blackjack
-SOURCES = $(wildcard *.c)
+SOURCES = $(wildcard src/*.c)
 OBJECTS = $(SOURCES:.c=.o)
 
 $(EXEC): $(OBJECTS)
