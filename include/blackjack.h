@@ -32,10 +32,15 @@ typedef struct
 
 typedef struct
 {
-  bool played;
-  bool hide_down_card;
   unsigned num_cards;
   Card cards[MAX_CARDS_PER_HAND];
+} Hand;
+
+typedef struct
+{
+  bool played;
+  bool hide_down_card;
+  Hand hand;
 } DealerHand;
 
 typedef struct
@@ -45,8 +50,7 @@ typedef struct
   bool payed;
   unsigned bet;
   HandStatus status;
-  unsigned num_cards;
-  Card cards[MAX_CARDS_PER_HAND];
+  Hand hand;
 } PlayerHand;
 
 typedef struct
@@ -65,34 +69,30 @@ typedef struct
 
 char *card_to_string(Game *game, Card *card);
 
-Card deal_card(Shoe *shoe);
-
-bool card_is_ace(Card *card);
-bool card_is_ten(Card *card);
-bool player_is_busted(PlayerHand *hand);
-bool player_is_blackjack(PlayerHand *hand);
-bool player_can_hit(PlayerHand *hand);
-bool player_can_stand(PlayerHand *hand);
+bool is_ace(Card *card);
+bool is_ten(Card *card);
+bool player_is_busted(PlayerHand *player_hand);
+bool is_blackjack(Hand *hand);
+bool player_can_hit(PlayerHand *player_hand);
+bool player_can_stand(PlayerHand *player_hand);
 bool player_can_split(Game *game);
 bool player_can_dbl(Game *game);
-bool player_is_done(Game *game, PlayerHand *hand);
+bool player_is_done(Game *game, PlayerHand *player_hand);
 bool more_hands_to_play(Game *game);
-bool dealer_is_blackjack(DealerHand *hand);
 bool need_to_play_dealer_hand(Game *game);
-bool dealer_is_busted(DealerHand *hand);
-bool dealer_upcard_is_ace(DealerHand *hand);
+bool dealer_is_busted(DealerHand *dealer_hand);
+bool dealer_upcard_is_ace(DealerHand *dealer_hand);
 bool need_to_shuffle(Game *game);
 
-unsigned player_get_value(PlayerHand *hand, CountMethod method);
-unsigned dealer_get_value(DealerHand *hand, CountMethod method);
+unsigned player_get_value(PlayerHand *player_hand, CountMethod method);
+unsigned dealer_get_value(DealerHand *dealer_hand, CountMethod method);
 unsigned all_bets(Game *game);
 
 void normalize_bet(Game *game);
 void save_game(Game *game);
 void load_game(Game *game);
 void pay_hands(Game *game);
-void player_deal_card(Shoe *shoe, PlayerHand *hand);
-void dealer_deal_card(Shoe *shoe, DealerHand *hand);
+void deal_card(Shoe *shoe, Hand *hand);
 void play_dealer_hand(Game *game);
 void draw_dealer_hand(Game *game);
 void player_draw_hand(Game *game, unsigned index);

@@ -1,29 +1,24 @@
 
 #include "blackjack.h"
 
-Card deal_card(Shoe *shoe)
-{
-  return shoe->cards[shoe->current_card++];
-}
-
-bool card_is_ace(Card *card)
+bool is_ace(Card *card)
 {
   return card->value == 0;
 }
 
-bool card_is_ten(Card *card)
+bool is_ten(Card *card)
 {
   return card->value > 9;
 }
 
-unsigned player_get_value(PlayerHand *hand, CountMethod method)
+unsigned player_get_value(PlayerHand *player_hand, CountMethod method)
 {
   unsigned v = 0;
   unsigned total = 0;
 
-  for(unsigned x = 0; x < hand->num_cards; ++x)
+  for(unsigned x = 0; x < player_hand->hand.num_cards; ++x)
   {
-    unsigned tmp_v = hand->cards[x].value + 1;
+    unsigned tmp_v = player_hand->hand.cards[x].value + 1;
     v = tmp_v > 9 ? 10 : tmp_v;
 
     if(method == Soft && v == 1 && total < 11)
@@ -36,30 +31,30 @@ unsigned player_get_value(PlayerHand *hand, CountMethod method)
 
   if(method == Soft && total > 21)
   {
-    return player_get_value(hand, Hard);
+    return player_get_value(player_hand, Hard);
   }
 
   return total;
 }
 
-bool player_is_busted(PlayerHand *hand)
+bool player_is_busted(PlayerHand *player_hand)
 {
-  return player_get_value(hand, Soft) > 21;
+  return player_get_value(player_hand, Soft) > 21;
 }
 
-bool player_is_blackjack(PlayerHand *hand)
+bool is_blackjack(Hand *hand)
 {
   if(hand->num_cards != 2)
   {
     return false;
   }
 
-  if(card_is_ace(&hand->cards[0]) && card_is_ten(&hand->cards[1]))
+  if(is_ace(&hand->cards[0]) && is_ten(&hand->cards[1]))
   {
     return true;
   }
 
-  if(card_is_ace(&hand->cards[1]) && card_is_ten(&hand->cards[0]))
+  if(is_ace(&hand->cards[1]) && is_ten(&hand->cards[0]))
   {
     return true;
   }
@@ -67,13 +62,13 @@ bool player_is_blackjack(PlayerHand *hand)
   return false;
 }
 
-bool player_can_hit(PlayerHand *hand)
+bool player_can_hit(PlayerHand *player_hand)
 {
-  if(hand->played
-     || hand->stood
-     || 21 == player_get_value(hand, Hard)
-     || player_is_blackjack(hand)
-     || player_is_busted(hand))
+  if(player_hand->played
+     || player_hand->stood
+     || 21 == player_get_value(player_hand, Hard)
+     || is_blackjack(&player_hand->hand)
+     || player_is_busted(player_hand))
   {
     return false;
   }
@@ -81,11 +76,11 @@ bool player_can_hit(PlayerHand *hand)
   return true;
 }
 
-bool player_can_stand(PlayerHand *hand)
+bool player_can_stand(PlayerHand *player_hand)
 {
-  if(hand->stood
-     || player_is_busted(hand)
-     || player_is_blackjack(hand))
+  if(player_hand->stood
+     || player_is_busted(player_hand)
+     || is_blackjack(&player_hand->hand))
   {
     return false;
   }
@@ -107,19 +102,19 @@ unsigned all_bets(Game *game)
 
 bool player_can_split(Game *game)
 { 
-  PlayerHand *hand = &game->player_hands[game->current_player_hand];
+  PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
 
-  if(hand->stood || game->total_player_hands >= MAX_PLAYER_HANDS)
+  if(player_hand->stood || game->total_player_hands >= MAX_PLAYER_HANDS)
   {
     return false;
   }
 
-  if(game->money < all_bets(game) + hand->bet)
+  if(game->money < all_bets(game) + player_hand->bet)
   {
     return false;
   }
 
-  if(hand->num_cards == 2 && hand->cards[0].value == hand->cards[1].value)
+  if(player_hand->hand.num_cards == 2 && player_hand->hand.cards[0].value == player_hand->hand.cards[1].value)
   {
     return true;
   }
@@ -129,17 +124,17 @@ bool player_can_split(Game *game)
 
 bool player_can_dbl(Game *game)
 {
-  PlayerHand *hand = &game->player_hands[game->current_player_hand];
+  PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
 
-  if(game->money < all_bets(game) + hand->bet)
+  if(game->money < all_bets(game) + player_hand->bet)
   {
     return false;
   }
 
-  if(hand->stood
-     || hand->num_cards != 2
-     || player_is_busted(hand)
-     || player_is_blackjack(hand))
+  if(player_hand->stood
+     || player_hand->hand.num_cards != 2
+     || player_is_busted(player_hand)
+     || is_blackjack(&player_hand->hand))
   {
     return false;
   }
@@ -147,27 +142,27 @@ bool player_can_dbl(Game *game)
   return true;
 }
 
-void player_deal_card(Shoe *shoe, PlayerHand *hand)
+void deal_card(Shoe *shoe, Hand *hand)
 {
-  hand->cards[hand->num_cards++] = deal_card(shoe);
+  hand->cards[hand->num_cards++] = shoe->cards[shoe->current_card++];
 }
 
-bool player_is_done(Game *game, PlayerHand *hand)
+bool player_is_done(Game *game, PlayerHand *player_hand)
 {
-  if(hand->played
-     || hand->stood
-     || player_is_blackjack(hand)
-     || player_is_busted(hand)
-     || 21 == player_get_value(hand, Soft)
-     || 21 == player_get_value(hand, Hard))
+  if(player_hand->played
+     || player_hand->stood
+     || is_blackjack(&player_hand->hand)
+     || player_is_busted(player_hand)
+     || 21 == player_get_value(player_hand, Soft)
+     || 21 == player_get_value(player_hand, Hard))
   {
-    hand->played = true;
+    player_hand->played = true;
 
-    if(!hand->payed && player_is_busted(hand))
+    if(!player_hand->payed && player_is_busted(player_hand))
     {
-      hand->payed = true;
-      hand->status = Lost;
-      game->money -= hand->bet;
+      player_hand->payed = true;
+      player_hand->status = Lost;
+      game->money -= player_hand->bet;
     }
 
     return true;
@@ -181,33 +176,13 @@ bool more_hands_to_play(Game *game)
   return game->current_player_hand < game->total_player_hands - 1;
 }
 
-bool dealer_is_blackjack(DealerHand *hand)
-{
-  if(hand->num_cards != 2)
-  {
-    return false;
-  }
-
-  if(card_is_ace(&hand->cards[0]) && card_is_ten(&hand->cards[1]))
-  {
-    return true;
-  }
-
-  if(card_is_ace(&hand->cards[1]) && card_is_ten(&hand->cards[0]))
-  {
-    return true;
-  }
-
-  return false;
-}
-
 bool need_to_play_dealer_hand(Game *game)
 {
   for(unsigned x = 0; x < game->total_player_hands; ++x)
   {
-    PlayerHand *hand = &game->player_hands[x];
+    PlayerHand *player_hand = &game->player_hands[x];
 
-    if(!(player_is_busted(hand) || player_is_blackjack(hand)))
+    if(!(player_is_busted(player_hand) || is_blackjack(&player_hand->hand)))
     {
       return true;
     }
@@ -216,19 +191,19 @@ bool need_to_play_dealer_hand(Game *game)
   return false;
 }
 
-unsigned dealer_get_value(DealerHand *hand, CountMethod method)
+unsigned dealer_get_value(DealerHand *dealer_hand, CountMethod method)
 {
   unsigned v = 0;
   unsigned total = 0;
 
-  for(unsigned x = 0; x < hand->num_cards; ++x)
+  for(unsigned x = 0; x < dealer_hand->hand.num_cards; ++x)
   {
-    if(x == 1 && hand->hide_down_card)
+    if(x == 1 && dealer_hand->hide_down_card)
     {
       continue;
     }
 
-    unsigned tmp_v = hand->cards[x].value + 1;
+    unsigned tmp_v = dealer_hand->hand.cards[x].value + 1;
     v = tmp_v > 9 ? 10 : tmp_v;
 
     if(method == Soft && v == 1 && total < 11)
@@ -241,15 +216,15 @@ unsigned dealer_get_value(DealerHand *hand, CountMethod method)
 
   if(method == Soft && total > 21)
   {
-    return dealer_get_value(hand, Hard);
+    return dealer_get_value(dealer_hand, Hard);
   }
 
   return total;
 }
 
-bool dealer_is_busted(DealerHand *hand)
+bool dealer_is_busted(DealerHand *dealer_hand)
 {
-  return dealer_get_value(hand, Soft) > 21;
+  return dealer_get_value(dealer_hand, Soft) > 21;
 }
 
 void normalize_bet(Game *game)
@@ -309,35 +284,35 @@ void pay_hands(Game *game)
 
   for(unsigned x = 0; x < game->total_player_hands; ++x)
   {
-    PlayerHand *hand = &game->player_hands[x];
+    PlayerHand *player_hand = &game->player_hands[x];
 
-    if(hand->payed)
+    if(player_hand->payed)
     {
       continue;
     }
 
-    hand->payed = true;
+    player_hand->payed = true;
 
-    unsigned phv = player_get_value(hand, Soft);
+    unsigned phv = player_get_value(player_hand, Soft);
 
     if(dhb || phv > dhv)
     {
-      if(player_is_blackjack(hand))
+      if(is_blackjack(&player_hand->hand))
       {
-	hand->bet *= 1.5;
+	player_hand->bet *= 1.5;
       }
 
-      game->money += hand->bet;
-      hand->status = Won;
+      game->money += player_hand->bet;
+      player_hand->status = Won;
     }
     else if(phv < dhv)
     {
-      game->money -= hand->bet;
-      hand->status = Lost;
+      game->money -= player_hand->bet;
+      player_hand->status = Lost;
     }
     else
     {
-      hand->status = Push;
+      player_hand->status = Push;
     }
   }
 
@@ -345,40 +320,35 @@ void pay_hands(Game *game)
   save_game(game);
 }
 
-void dealer_deal_card(Shoe *shoe, DealerHand *hand)
-{
-  hand->cards[hand->num_cards++] = deal_card(shoe);
-}
-
 void play_dealer_hand(Game *game)
 {
-  DealerHand *hand = &game->dealer_hand;
+  DealerHand *dealer_hand = &game->dealer_hand;
 
-  if(dealer_is_blackjack(hand))
+  if(is_blackjack(&dealer_hand->hand))
   {
-    hand->hide_down_card = false;
+    dealer_hand->hide_down_card = false;
   }
 
   if(!need_to_play_dealer_hand(game))
   {
-    hand->played = true;
+    dealer_hand->played = true;
     pay_hands(game);
     return;
   }
 
-  hand->hide_down_card = false;
+  dealer_hand->hide_down_card = false;
 
-  unsigned soft_count = dealer_get_value(hand, Soft);
-  unsigned hard_count = dealer_get_value(hand, Hard);
+  unsigned soft_count = dealer_get_value(dealer_hand, Soft);
+  unsigned hard_count = dealer_get_value(dealer_hand, Hard);
 
   while(soft_count < 18 && hard_count < 17)
   {
-    dealer_deal_card(&game->shoe, hand);
-    soft_count = dealer_get_value(hand, Soft);
-    hard_count = dealer_get_value(hand, Hard);
+    deal_card(&game->shoe, &dealer_hand->hand);
+    soft_count = dealer_get_value(dealer_hand, Soft);
+    hard_count = dealer_get_value(dealer_hand, Hard);
   }
 
-  hand->played = true;
+  dealer_hand->played = true;
   pay_hands(game);
 }
 
@@ -389,67 +359,67 @@ void clear()
 
 void draw_dealer_hand(Game *game)
 {
-  DealerHand *hand = &game->dealer_hand;
+  DealerHand *dealer_hand = &game->dealer_hand;
 
   printf(" ");
 
-  for(unsigned i = 0; i < hand->num_cards; ++i)
+  for(unsigned i = 0; i < dealer_hand->hand.num_cards; ++i)
   {
-    if(i == 1 && hand->hide_down_card)
+    if(i == 1 && dealer_hand->hide_down_card)
     {
       printf("%s ", (*game->card_faces)[13][0]);
     }
     else
     {
-      Card *card = &hand->cards[i];
+      Card *card = &dealer_hand->hand.cards[i];
       printf("%s ", (*game->card_faces)[card->value][card->suite]);
     }
   }
 
-  printf(" ⇒  %d", dealer_get_value(hand, Soft));
+  printf(" ⇒  %d", dealer_get_value(dealer_hand, Soft));
 }
 
 void player_draw_hand(Game *game, unsigned index)
 {
-  PlayerHand *hand = &game->player_hands[index];
+  PlayerHand *player_hand = &game->player_hands[index];
 
   printf(" ");
 
-  for(unsigned i = 0; i < hand->num_cards; ++i)
+  for(unsigned i = 0; i < player_hand->hand.num_cards; ++i)
   {
-    Card *c = &hand->cards[i];
+    Card *c = &player_hand->hand.cards[i];
     printf("%s ", (*game->card_faces)[c->value][c->suite]);
   }
 
-  printf(" ⇒  %d  ", player_get_value(hand, Soft));
+  printf(" ⇒  %d  ", player_get_value(player_hand, Soft));
 
-  if(hand->status == Lost)
+  if(player_hand->status == Lost)
   {
     printf("-");
   }
-  else if(hand->status == Won)
+  else if(player_hand->status == Won)
   {
     printf("+");
   }
 
-  printf("$%.2f", (float)(hand->bet / 100.0));
+  printf("$%.2f", (float)(player_hand->bet / 100.0));
 
-  if(!hand->played && index == game->current_player_hand)
+  if(!player_hand->played && index == game->current_player_hand)
   {
     printf(" ⇐");
   }
 
   printf("  ");
 
-  if(hand->status == Lost)
+  if(player_hand->status == Lost)
   {
-    printf(player_is_busted(hand) ? "Busted!" : "Lose!");
+    printf(player_is_busted(player_hand) ? "Busted!" : "Lose!");
   }
-  else if(hand->status == Won)
+  else if(player_hand->status == Won)
   {
-    printf(player_is_blackjack(hand) ? "Blackjack!" : "Won!");
+    printf(is_blackjack(&player_hand->hand) ? "Blackjack!" : "Won!");
   }
-  else if(hand->status == Push)
+  else if(player_hand->status == Push)
   {
     printf("Push");
   }
@@ -498,29 +468,28 @@ void shuffle(Shoe *shoe)
   {
     for(unsigned i = shoe->num_cards - 1; i > 0; i--)
     {
-      unsigned j = rand() % (i + 1);
-      swap(&shoe->cards[i], &shoe->cards[j]);
+      swap(&shoe->cards[i], &shoe->cards[rand() % (i + 1)]);
     }
   }
 
   shoe->current_card = 0;
 }
 
-bool dealer_upcard_is_ace(DealerHand *hand)
+bool dealer_upcard_is_ace(DealerHand *dealer_hand)
 {
-  return card_is_ace(&hand->cards[0]);
+  return is_ace(&dealer_hand->hand.cards[0]);
 }
 
 void insure_hand(Game *game)
 {
-  PlayerHand *hand = &game->player_hands[game->current_player_hand];
+  PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
 
-  hand->bet /= 2;
-  hand->played = true;
-  hand->payed = true;
-  hand->status = Lost;
+  player_hand->bet /= 2;
+  player_hand->played = true;
+  player_hand->payed = true;
+  player_hand->status = Lost;
   
-  game->money -= hand->bet;
+  game->money -= player_hand->bet;
   
   draw_hands(game);
   bet_options(game);
@@ -530,7 +499,7 @@ void no_insurance(Game *game)
 {
   DealerHand *dealer_hand = &game->dealer_hand;
 
-  if(dealer_is_blackjack(dealer_hand))
+  if(is_blackjack(&dealer_hand->hand))
   {
     dealer_hand->hide_down_card = false;
     dealer_hand->played = true;
@@ -541,9 +510,9 @@ void no_insurance(Game *game)
     return;
   }
   
-  PlayerHand *hand = &game->player_hands[game->current_player_hand];
+  PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
 
-  if(player_is_done(game, hand))
+  if(player_is_done(game, player_hand))
   {
     play_dealer_hand(game);
     draw_hands(game);
@@ -600,12 +569,12 @@ void deal_new_hand(Game *game)
   DealerHand *dealer_hand = &game->dealer_hand;
 
   dealer_hand->hide_down_card = true;
-  dealer_hand->num_cards = 0;
+  dealer_hand->hand.num_cards = 0;
 
-  player_deal_card(shoe, &player_hand);
-  dealer_deal_card(shoe, dealer_hand);
-  player_deal_card(shoe, &player_hand);
-  dealer_deal_card(shoe, dealer_hand);
+  deal_card(shoe, &player_hand.hand);
+  deal_card(shoe, &dealer_hand->hand);
+  deal_card(shoe, &player_hand.hand);
+  deal_card(shoe, &dealer_hand->hand);
 
   game->player_hands[0] = player_hand;
   game->current_player_hand = 0;
@@ -698,10 +667,10 @@ void process(Game *game)
 
 void play_more_hands(Game *game)
 {
-  PlayerHand *hand = &game->player_hands[++(game->current_player_hand)];
-  player_deal_card(&game->shoe, hand);
+  PlayerHand *player_hand = &game->player_hands[++(game->current_player_hand)];
+  deal_card(&game->shoe, &player_hand->hand);
 
-  if(player_is_done(game, hand))
+  if(player_is_done(game, player_hand))
   {
     process(game);
     return;
@@ -713,10 +682,10 @@ void play_more_hands(Game *game)
 
 void player_hit(Game *game)
 {
-  PlayerHand *hand = &game->player_hands[game->current_player_hand];
-  player_deal_card(&game->shoe, hand);
+  PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
+  deal_card(&game->shoe, &player_hand->hand);
 
-  if(player_is_done(game, hand))
+  if(player_is_done(game, player_hand))
   {
     process(game);
     return;
@@ -728,10 +697,10 @@ void player_hit(Game *game)
 
 void player_stand(Game *game)
 {
-  PlayerHand *hand = &game->player_hands[game->current_player_hand];
+  PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
 
-  hand->stood = true;
-  hand->played = true;
+  player_hand->stood = true;
+  player_hand->played = true;
 
   if(more_hands_to_play(game))
   {
@@ -769,12 +738,12 @@ void player_split(Game *game)
   PlayerHand *this_hand = &game->player_hands[game->current_player_hand];
   PlayerHand *split_hand = &game->player_hands[game->current_player_hand + 1];
 
-  Card c = this_hand->cards[1];
-  split_hand->cards[0] = c;
-  split_hand->num_cards = 1;
-  this_hand->num_cards = 1;
+  Card c = this_hand->hand.cards[1];
+  split_hand->hand.cards[0] = c;
+  split_hand->hand.num_cards = 1;
+  this_hand->hand.num_cards = 1;
 
-  player_deal_card(&game->shoe, this_hand);
+  deal_card(&game->shoe, &this_hand->hand);
 
   if(player_is_done(game, this_hand))
   {
@@ -788,13 +757,13 @@ void player_split(Game *game)
 
 void player_dbl(Game *game)
 {
-  PlayerHand *hand = &game->player_hands[game->current_player_hand];
+  PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
 
-  player_deal_card(&game->shoe, hand);
-  hand->played = true;
-  hand->bet *= 2;
+  deal_card(&game->shoe, &player_hand->hand);
+  player_hand->played = true;
+  player_hand->bet *= 2;
 
-  if(player_is_done(game, hand))
+  if(player_is_done(game, player_hand))
   {
     process(game);
   }
@@ -807,14 +776,14 @@ char *card_to_string(Game *game, Card *card)
 
 void player_get_action(Game *game)
 {
-  PlayerHand *hand = &game->player_hands[game->current_player_hand];
+  PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
 
   printf(" ");
 
-  if(player_can_hit(hand))   printf("(H) Hit  ");
-  if(player_can_stand(hand)) printf("(S) Stand  ");
-  if(player_can_split(game)) printf("(P) Split  ");
-  if(player_can_dbl(game))   printf("(D) Double  ");
+  if(player_can_hit(player_hand))   printf("(H) Hit  ");
+  if(player_can_stand(player_hand)) printf("(S) Stand  ");
+  if(player_can_split(game))        printf("(P) Split  ");
+  if(player_can_dbl(game))          printf("(D) Double  ");
 
   printf("\n");
 
