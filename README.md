@@ -6,3 +6,5 @@ Console Blackjack in C
 
 ## Run
     ./blackjack
+
+![Blackjack](https://raw.githubusercontent.com/gdonald/blackjack-c/master/bj.png)
