@@ -1,6 +1,6 @@
 
-#ifndef _BLACKJACK_H
-#define _BLACKJACK_H
+#ifndef BLACKJACK_H
+#define BLACKJACK_H
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -17,13 +17,11 @@
 #define MAX_BET 10000000
 #define SAVE_FILE "bj.txt"
 
-struct termios term;
-
 typedef enum { Soft, Hard } CountMethod;
 typedef enum { Won=1, Lost, Push } HandStatus;
 
-const unsigned shuffle_specs[8][2];
-const char* const card_faces[14][4];
+extern const unsigned shuffle_specs[8][2];
+extern const char* const card_faces[14][4];
 
 struct Card
 {
@@ -33,44 +31,44 @@ struct Card
 
 struct Shoe
 {
+  struct Card cards[CARDS_PER_DECK * MAX_DECKS];
   unsigned current_card;
   unsigned num_cards;
-  struct Card cards[CARDS_PER_DECK * MAX_DECKS];
 };
 
 struct Hand
 {
-  unsigned num_cards;
   struct Card cards[MAX_CARDS_PER_HAND];
+  unsigned num_cards;
 };
 
 struct DealerHand
 {
+  struct Hand hand;
   bool played;
   bool hide_down_card;
-  struct Hand hand;
 };
 
 struct PlayerHand
 {
+  struct Hand hand;
+  unsigned bet;
   bool stood;
   bool played;
   bool payed;
-  unsigned bet;
   HandStatus status;
-  struct Hand hand;
 };
 
 struct Game
 {
+  struct Shoe shoe;
+  struct DealerHand dealer_hand;
+  struct PlayerHand player_hands[MAX_PLAYER_HANDS];
   unsigned num_decks;
   unsigned money;
   unsigned current_bet;
   unsigned current_player_hand;
   unsigned total_player_hands;
-  struct Shoe shoe;
-  struct DealerHand dealer_hand;
-  struct PlayerHand player_hands[MAX_PLAYER_HANDS];
   const unsigned (*shuffle_specs)[8][2];
   const char* const (*card_faces)[14][4];
 };
@@ -131,6 +129,6 @@ void new_sevens(struct Game* game);
 void new_eights(struct Game* game);
 void buffer_off(struct termios* term);
 void buffer_on(struct termios* term);
-void clear();
+void clear(void);
 
 #endif

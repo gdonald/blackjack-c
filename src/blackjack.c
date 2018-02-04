@@ -376,7 +376,7 @@ void play_dealer_hand(struct Game* game)
   pay_hands(game);
 }
 
-void clear()
+void clear(void)
 {
   system("export TERM=linux; clear");
 }
@@ -426,7 +426,7 @@ void player_draw_hand(const struct Game* game, unsigned index)
     printf("+");
   }
 
-  printf("$%.2f", (float)(player_hand->bet / 100.0));
+  printf("$%.2f", (double)(player_hand->bet / 100.0));
 
   if(!player_hand->played && index == game->current_player_hand)
   {
@@ -456,7 +456,7 @@ void draw_hands(const struct Game* game)
   clear();
   printf("\n Dealer: \n");
   draw_dealer_hand(game);
-  printf("\n\n Player $%.2f:\n", (float)(game->money / 100.0));
+  printf("\n\n Player $%.2f:\n", (double)(game->money / 100.0));
 
   for(unsigned x = 0; x < game->total_player_hands; x++)
   {
@@ -466,7 +466,7 @@ void draw_hands(const struct Game* game)
 
 bool need_to_shuffle(const struct Game* game)
 {
-  unsigned used = (game->shoe.current_card / (double) game->shoe.num_cards) * 100.0;
+  unsigned used = (unsigned)((game->shoe.current_card / (double) game->shoe.num_cards) * 100.0);
 
   for(unsigned x = 0; x < MAX_DECKS; ++x)
   {
@@ -492,7 +492,7 @@ void shuffle(struct Shoe* shoe)
   {
     for(unsigned i = shoe->num_cards - 1; i > 0; i--)
     {
-      swap(&shoe->cards[i], &shoe->cards[rand() % (i + 1)]);
+      swap(&shoe->cards[i], &shoe->cards[(unsigned)rand() % (i + 1)]);
     }
   }
 
@@ -556,7 +556,7 @@ void ask_insurance(struct Game* game)
 
   while(true)
   {
-    c = getchar();
+    c = (char)getchar();
 
     switch(c)
     {
@@ -669,7 +669,7 @@ void get_new_deck_type(struct Game* game)
 
   while(true)
   {
-    c = getchar();
+    c = (char)getchar();
 
     switch(c)
     {
@@ -725,7 +725,7 @@ void game_options(struct Game* game)
 
   while(true)
   {
-    c = getchar();
+    c = (char)getchar();
 
     switch(c)
     {
@@ -763,7 +763,7 @@ void bet_options(struct Game* game)
 
   while(true)
   {
-    c = getchar();
+    c = (char)getchar();
 
     switch(c)
     {
@@ -934,7 +934,7 @@ void player_get_action(struct Game* game)
 
   while(true)
   {
-    c = getchar();
+    c = (char)getchar();
 
     switch(c)
     {
@@ -968,7 +968,7 @@ void player_get_action(struct Game* game)
 void buffer_off(struct termios* term)
 {
   tcgetattr(STDIN_FILENO, term);
-  term->c_lflag &= ~ICANON;
+  term->c_lflag &= (unsigned)~ICANON;
   tcsetattr(STDIN_FILENO, TCSANOW, term);
 }
 

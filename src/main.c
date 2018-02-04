@@ -3,7 +3,7 @@
 
 int main()
 {
-  srand(time(NULL));
+  srand((unsigned)time(NULL));
 
   struct Game game = { .num_decks = 8,
 		       .money = 10000,
@@ -14,6 +14,7 @@ int main()
   load_game(&game);
   new_regular(&game);
 
+  struct termios term;
   buffer_off(&term);
   deal_new_hand(&game);
   buffer_on(&term);
