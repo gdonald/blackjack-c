@@ -1,10 +1,10 @@
 
 CC = clang
-CC_FLAGS = -fshort-enums -std=c11 -O2 -Iinclude
-#CC_FLAGS = -Weverything -Wno-padded -fshort-enums -std=c11 -O0 -g -Iinclude
+CC_FLAGS = -std=c11 -O2 -Iinclude
+#CC_FLAGS = -Weverything -Wno-padded -std=c11 -O0 -g -Iinclude
 
 #CC = gcc
-#CC_FLAGS = -Wall -Wextra -fshort-enums -std=c11 -O0 -g -Iinclude
+#CC_FLAGS = -Wall -Wextra -std=c11 -O0 -g -Iinclude
 
 EXEC = blackjack
 SOURCES = $(wildcard src/*.c)

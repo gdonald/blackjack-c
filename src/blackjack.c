@@ -39,10 +39,11 @@ unsigned player_get_value(const struct PlayerHand* player_hand, CountMethod meth
 {
   unsigned v = 0;
   unsigned total = 0;
+  unsigned tmp_v;
 
   for(unsigned x = 0; x < player_hand->hand.num_cards; ++x)
   {
-    unsigned tmp_v = player_hand->hand.cards[x].value + 1;
+    tmp_v = player_hand->hand.cards[x].value + 1;
     v = tmp_v > 9 ? 10 : tmp_v;
 
     if(method == Soft && v == 1 && total < 11)
@@ -202,9 +203,11 @@ bool more_hands_to_play(const struct Game* game)
 
 bool need_to_play_dealer_hand(const struct Game* game)
 {
+  const struct PlayerHand* player_hand;
+
   for(unsigned x = 0; x < game->total_player_hands; ++x)
   {
-    const struct PlayerHand* player_hand = &game->player_hands[x];
+    player_hand = &game->player_hands[x];
 
     if(!(player_is_busted(player_hand) || is_blackjack(&player_hand->hand)))
     {
@@ -219,6 +222,7 @@ unsigned dealer_get_value(const struct DealerHand* dealer_hand, CountMethod meth
 {
   unsigned v = 0;
   unsigned total = 0;
+  unsigned tmp_v;
 
   for(unsigned x = 0; x < dealer_hand->hand.num_cards; ++x)
   {
@@ -227,7 +231,7 @@ unsigned dealer_get_value(const struct DealerHand* dealer_hand, CountMethod meth
       continue;
     }
 
-    unsigned tmp_v = dealer_hand->hand.cards[x].value + 1;
+    tmp_v = dealer_hand->hand.cards[x].value + 1;
     v = tmp_v > 9 ? 10 : tmp_v;
 
     if(method == Soft && v == 1 && total < 11)
@@ -282,11 +286,10 @@ void save_game(const struct Game* game)
 void load_game(struct Game* game)
 {
   FILE* fp = fopen(SAVE_FILE, "r");
+  char buffer[32];
 
   if(fp != NULL)
   {
-    char buffer[32];
-
     fgets(buffer, sizeof(buffer), fp);
     sscanf(buffer, "%u", &game->num_decks);
 
@@ -305,10 +308,12 @@ void pay_hands(struct Game* game)
   struct DealerHand* dealer_hand = &game->dealer_hand;
   unsigned dhv = dealer_get_value(dealer_hand, Soft);
   bool dhb = dealer_is_busted(dealer_hand);
+  struct PlayerHand* player_hand;
+  unsigned phv;
 
   for(unsigned x = 0; x < game->total_player_hands; ++x)
   {
-    struct PlayerHand* player_hand = &game->player_hands[x];
+    player_hand = &game->player_hands[x];
 
     if(player_hand->payed)
     {
@@ -317,7 +322,7 @@ void pay_hands(struct Game* game)
 
     player_hand->payed = true;
 
-    unsigned phv = player_get_value(player_hand, Soft);
+    phv = player_get_value(player_hand, Soft);
 
     if(dhb || phv > dhv)
     {
@@ -347,6 +352,8 @@ void pay_hands(struct Game* game)
 void play_dealer_hand(struct Game* game)
 {
   struct DealerHand* dealer_hand = &game->dealer_hand;
+  unsigned soft_count;
+  unsigned hard_count;
 
   if(is_blackjack(&dealer_hand->hand))
   {
@@ -362,8 +369,8 @@ void play_dealer_hand(struct Game* game)
 
   dealer_hand->hide_down_card = false;
 
-  unsigned soft_count = dealer_get_value(dealer_hand, Soft);
-  unsigned hard_count = dealer_get_value(dealer_hand, Hard);
+  soft_count = dealer_get_value(dealer_hand, Soft);
+  hard_count = dealer_get_value(dealer_hand, Hard);
 
   while(soft_count < 18 && hard_count < 17)
   {
@@ -384,6 +391,7 @@ void clear(void)
 void draw_dealer_hand(const struct Game* game)
 {
   const struct DealerHand* dealer_hand = &game->dealer_hand;
+  const struct Card* card;
 
   printf(" ");
 
@@ -395,7 +403,7 @@ void draw_dealer_hand(const struct Game* game)
     }
     else
     {
-      const struct Card* card = &dealer_hand->hand.cards[i];
+      card = &dealer_hand->hand.cards[i];
       printf("%s ", (*game->card_faces)[card->value][card->suite]);
     }
   }
@@ -406,13 +414,14 @@ void draw_dealer_hand(const struct Game* game)
 void player_draw_hand(const struct Game* game, unsigned index)
 {
   const struct PlayerHand* player_hand = &game->player_hands[index];
+  const struct Card* card;
 
   printf(" ");
 
   for(unsigned i = 0; i < player_hand->hand.num_cards; ++i)
   {
-    const struct Card* c = &player_hand->hand.cards[i];
-    printf("%s ", (*game->card_faces)[c->value][c->suite]);
+    card = &player_hand->hand.cards[i];
+    printf("%s ", (*game->card_faces)[card->value][card->suite]);
   }
 
   printf(" ⇒  %d  ", player_get_value(player_hand, Soft));
@@ -512,7 +521,6 @@ void insure_hand(struct Game* game)
   player_hand->played = true;
   player_hand->payed = true;
   player_hand->status = Lost;
-  
   game->money -= player_hand->bet;
   
   draw_hands(game);
@@ -522,6 +530,7 @@ void insure_hand(struct Game* game)
 void no_insurance(struct Game* game)
 {
   struct DealerHand* dealer_hand = &game->dealer_hand;
+  struct PlayerHand* player_hand;
 
   if(is_blackjack(&dealer_hand->hand))
   {
@@ -534,7 +543,7 @@ void no_insurance(struct Game* game)
     return;
   }
   
-  struct PlayerHand* player_hand = &game->player_hands[game->current_player_hand];
+  player_hand = &game->player_hands[game->current_player_hand];
 
   if(player_is_done(game, player_hand))
   {
@@ -582,15 +591,14 @@ void ask_insurance(struct Game* game)
 
 void deal_new_hand(struct Game* game)
 {
+  struct PlayerHand player_hand = { .bet=game->current_bet };
+  struct DealerHand* dealer_hand = &game->dealer_hand;
   struct Shoe* shoe = &game->shoe;
 
   if(need_to_shuffle(game))
   {
     shuffle(shoe);
   }
-  
-  struct PlayerHand player_hand = { .bet=game->current_bet };
-  struct DealerHand* dealer_hand = &game->dealer_hand;
 
   dealer_hand->hide_down_card = true;
   dealer_hand->hand.num_cards = 0;
@@ -627,12 +635,12 @@ void deal_new_hand(struct Game* game)
 
 void get_new_bet(struct Game* game)
 {
+  unsigned tmp;
+
   clear();
   draw_hands(game);
 
   printf("  Current Bet: $%d  Enter New Bet: $", (game->current_bet / 100));
-
-  unsigned tmp;
   scanf("%d", &tmp);
 
   game->current_bet = tmp * 100;
@@ -642,12 +650,12 @@ void get_new_bet(struct Game* game)
 
 void get_new_num_decks(struct Game* game)
 {
+  unsigned tmp;
+
   clear();
   draw_hands(game);
 
   printf("  Number Of Decks: %d  Enter New Number Of Decks (1-8): ", (game->num_decks));
-
-  unsigned tmp;
   scanf("%d", &tmp);
 
   if(tmp < 1) tmp = 1;
@@ -659,13 +667,12 @@ void get_new_num_decks(struct Game* game)
 
 void get_new_deck_type(struct Game* game)
 {
-  clear();
-  draw_hands(game);
-
-  printf(" (1) Regular  (2) Aces  (3) Jacks  (4) Aces & Jacks  (5) Sevens  (6) Eights\n");
-
   bool br = false;
   char c = { 0 };
+
+  clear();
+  draw_hands(game);
+  printf(" (1) Regular  (2) Aces  (3) Jacks  (4) Aces & Jacks  (5) Sevens  (6) Eights\n");
 
   while(true)
   {
@@ -715,13 +722,12 @@ void get_new_deck_type(struct Game* game)
 
 void game_options(struct Game* game)
 {
-  clear();
-  draw_hands(game);
-
-  printf(" (N) Number of Decks  (T) Deck Type  (B) Back\n");
-
   bool br = false;
   char c = { 0 };
+
+  clear();
+  draw_hands(game);
+  printf(" (N) Number of Decks  (T) Deck Type  (B) Back\n");
 
   while(true)
   {
@@ -756,10 +762,10 @@ void game_options(struct Game* game)
 
 void bet_options(struct Game* game)
 {
-  printf(" (D) Deal Hand  (B) Change Bet  (O) Options  (Q) Quit\n");
-
   bool br = false;
   char c = { 0 };
+
+  printf(" (D) Deal Hand  (B) Change Bet  (O) Options  (Q) Quit\n");
 
   while(true)
   {
@@ -857,6 +863,12 @@ void player_stand(struct Game* game)
 
 void player_split(struct Game* game)
 {
+  struct PlayerHand new_hand = { .bet=game->current_bet };
+  unsigned hand_count = game->total_player_hands;
+  struct PlayerHand* this_hand;
+  struct PlayerHand* split_hand;
+  struct Card card;
+
   if(!player_can_split(game))
   {
     draw_hands(game);
@@ -864,27 +876,21 @@ void player_split(struct Game* game)
     return;
   }
 
-  // add a new hand at the end
-  struct PlayerHand new_hand = { .bet=game->current_bet };
   game->player_hands[game->total_player_hands++] = new_hand;
 
-  // expand hands where split occured
-  unsigned x = game->total_player_hands - 1;
-  while(x > game->current_player_hand)
+  while(hand_count > game->current_player_hand)
   {
-    game->player_hands[x] = game->player_hands[x - 1];
-    --x;
+    game->player_hands[hand_count] = game->player_hands[hand_count - 1];
+    --hand_count;
   }
 
-  // split current hand
-  struct PlayerHand* this_hand = &game->player_hands[game->current_player_hand];
-  struct PlayerHand* split_hand = &game->player_hands[game->current_player_hand + 1];
+  this_hand = &game->player_hands[game->current_player_hand];
+  split_hand = &game->player_hands[game->current_player_hand + 1];
 
-  struct Card c = this_hand->hand.cards[1];
-  split_hand->hand.cards[0] = c;
+  card = this_hand->hand.cards[1];
+  split_hand->hand.cards[0] = card;
   split_hand->hand.num_cards = 1;
   this_hand->hand.num_cards = 1;
-
   deal_card(&game->shoe, &this_hand->hand);
 
   if(player_is_done(game, this_hand))
@@ -919,6 +925,8 @@ const char* card_to_string(const struct Game* game, const struct Card* card)
 void player_get_action(struct Game* game)
 {
   struct PlayerHand* player_hand = &game->player_hands[game->current_player_hand];
+  bool br = false;
+  char c = { 0 };
 
   printf(" ");
 
@@ -928,9 +936,6 @@ void player_get_action(struct Game* game)
   if(player_can_dbl(game))          printf("(D) Double  ");
 
   printf("\n");
-
-  bool br = false;
-  char c = { 0 };
 
   while(true)
   {
@@ -981,15 +986,18 @@ void buffer_on(struct termios* term)
 
 void new_regular(struct Game* game)
 {
+  struct Card c;
   game->shoe.num_cards = 0;
 
   for(unsigned deck = 0; deck < game->num_decks; ++deck)
   {
     for(unsigned suite = 0; suite < 4; ++suite)
     {
+      c.suite = suite;
+
       for(unsigned value = 0; value < 13; ++value)
       {
-	struct Card c = { value, suite };
+	c.value = value;
 	game->shoe.cards[game->shoe.num_cards++] = c;
       }
     }
@@ -1000,13 +1008,14 @@ void new_regular(struct Game* game)
 
 void new_aces(struct Game* game)
 {
+  struct Card c = { .value = 0 };
   game->shoe.num_cards = 0;
 
   for(unsigned deck = 0; deck < game->num_decks * 5; ++deck)
   {
     for(unsigned suite = 0; suite < 4; ++suite)
     {
-      struct Card c = { 0, suite };
+      c.suite = suite;
       game->shoe.cards[game->shoe.num_cards++] = c;
     }
   }
@@ -1014,15 +1023,18 @@ void new_aces(struct Game* game)
 
 void new_aces_jacks(struct Game* game)
 {
+  struct Card c1 = { .value = 0 };
+  struct Card c2 = { .value = 10 };
   game->shoe.num_cards = 0;
 
   for(unsigned deck = 0; deck < game->num_decks * 4; ++deck)
   {
     for(unsigned suite = 0; suite < 4; ++suite)
     {
-      struct Card c1 = { 0, suite };
+      c1.suite = suite;
       game->shoe.cards[game->shoe.num_cards++] = c1;
-      struct Card c2 = { 10, suite };
+
+      c2.suite = suite;
       game->shoe.cards[game->shoe.num_cards++] = c2;
     }
   }
@@ -1032,13 +1044,14 @@ void new_aces_jacks(struct Game* game)
 
 void new_jacks(struct Game* game)
 {
+  struct Card c = { .value = 10 };
   game->shoe.num_cards = 0;
 
   for(unsigned deck = 0; deck < game->num_decks * 5; ++deck)
   {
     for(unsigned suite = 0; suite < 4; ++suite)
     {
-      struct Card c = { 10, suite };
+      c.suite = suite;
       game->shoe.cards[game->shoe.num_cards++] = c;
     }
   }
@@ -1046,13 +1059,14 @@ void new_jacks(struct Game* game)
 
 void new_sevens(struct Game* game)
 {
+  struct Card c = { .value = 6 };
   game->shoe.num_cards = 0;
 
   for(unsigned deck = 0; deck < game->num_decks * 5; ++deck)
   {
     for(unsigned suite = 0; suite < 4; ++suite)
     {
-      struct Card c = { 6, suite };
+      c.suite = suite;
       game->shoe.cards[game->shoe.num_cards++] = c;
     }
   }
@@ -1060,13 +1074,14 @@ void new_sevens(struct Game* game)
 
 void new_eights(struct Game* game)
 {
+  struct Card c = { .value = 7 };
   game->shoe.num_cards = 0;
 
   for(unsigned deck = 0; deck < game->num_decks * 5; ++deck)
   {
     for(unsigned suite = 0; suite < 4; ++suite)
     {
-      struct Card c = { 7, suite };
+      c.suite = suite;
       game->shoe.cards[game->shoe.num_cards++] = c;
     }
   }
