@@ -14,6 +14,7 @@ Console Blackjack in C
     autoreconf -iv
     ./configure
     make
+    make install
 
 ## Run
     blackjack
