@@ -1,10 +1,19 @@
 # blackjack-c
 Console Blackjack in C
 
-## Build
+## Build from a [release](https://github.com/gdonald/blackjack-c/releases)
+    tar xvf blackjack-*.tar.gz
+    cd blackjack-c
     ./configure
     make
     make install
+
+## Build from git repo:
+    git clone https://github.com/gdonald/blackjack-c.git
+    cd blackjack-c
+    autoreconf -iv
+    ./configure
+    make
 
 ## Run
     blackjack
