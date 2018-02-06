@@ -1,25 +1,20 @@
 # blackjack-c
 Console Blackjack in C
 
-## Build from a [release](https://github.com/gdonald/blackjack-c/releases)
-    tar xvf blackjack-*.tar.gz
-    cd blackjack-c
-    ./configure
-    make
-    make install
-
-## Build from git repo:
+## Build
     git clone https://github.com/gdonald/blackjack-c.git
     cd blackjack-c
-    autoreconf -iv
-    ./configure
     make
-    make install
 
 ## Run
-    blackjack
+    ./blackjack
 
 ## Terminal
-**Increase your terminal font size to see the cards better:**
+
+Increase your terminal font size to see the cards better:
 
 ![Blackjack](https://raw.githubusercontent.com/gdonald/blackjack-c/master/bj.png)
+
+## License
+
+blackjack-c is released under the [GNU GENERAL PUBLIC LICENSE Version 2](https://opensource.org/licenses/GPL-2.0)
