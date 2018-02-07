@@ -399,12 +399,12 @@ void draw_dealer_hand(const struct Game* game)
   {
     if(i == 1 && dealer_hand->hide_down_card)
     {
-      printf("%s ", (*game->card_faces)[13][0]);
+      printf("%s ", game->card_faces[13][0]);
     }
     else
     {
       card = &dealer_hand->hand.cards[i];
-      printf("%s ", (*game->card_faces)[card->value][card->suite]);
+      printf("%s ", game->card_faces[card->value][card->suite]);
     }
   }
 
@@ -421,7 +421,7 @@ void player_draw_hand(const struct Game* game, unsigned index)
   for(unsigned i = 0; i < player_hand->hand.num_cards; ++i)
   {
     card = &player_hand->hand.cards[i];
-    printf("%s ", (*game->card_faces)[card->value][card->suite]);
+    printf("%s ", game->card_faces[card->value][card->suite]);
   }
 
   printf(" ⇒  %u  ", player_get_value(player_hand, Soft));
@@ -479,7 +479,7 @@ bool need_to_shuffle(const struct Game* game)
 
   for(unsigned x = 0; x < MAX_DECKS; ++x)
   {
-    if(game->num_decks == (*game->shuffle_specs)[x][1] && used > (*game->shuffle_specs)[x][0])
+    if(game->num_decks == game->shuffle_specs[x][1] && used > game->shuffle_specs[x][0])
     {
       return true;
     }
@@ -927,7 +927,7 @@ void player_dbl(struct Game* game)
 
 const char* card_to_string(const struct Game* game, const struct Card* card)
 {
-  return (*game->card_faces)[card->value][card->suite];
+  return game->card_faces[card->value][card->suite];
 }
 
 void player_get_action(struct Game* game)

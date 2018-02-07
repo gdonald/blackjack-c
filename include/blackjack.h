@@ -69,8 +69,8 @@ struct Game
   unsigned current_bet;
   unsigned current_player_hand;
   unsigned total_player_hands;
-  const unsigned (*shuffle_specs)[8][2];
-  const char* const (*card_faces)[14][4];
+  const unsigned (*shuffle_specs)[2];
+  const char* const (*card_faces)[4];
 };
 
 const char* card_to_string(const struct Game* game, const struct Card* card);
