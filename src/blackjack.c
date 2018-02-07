@@ -641,7 +641,11 @@ void get_new_bet(struct Game* game)
   draw_hands(game);
 
   printf("  Current Bet: $%d  Enter New Bet: $", (game->current_bet / 100));
-  scanf("%d", &tmp);
+
+  if(1 != scanf("%u", &tmp))
+  {
+    tmp = MIN_BET / 100;
+  }
 
   game->current_bet = tmp * 100;
   normalize_bet(game);
@@ -656,7 +660,11 @@ void get_new_num_decks(struct Game* game)
   draw_hands(game);
 
   printf("  Number Of Decks: %d  Enter New Number Of Decks (1-8): ", (game->num_decks));
-  scanf("%d", &tmp);
+
+  if(1 != scanf("%u", &tmp))
+  {
+    tmp = 1;
+  }
 
   if(tmp < 1) tmp = 1;
   if(tmp > 8) tmp = 8;
