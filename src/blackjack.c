@@ -278,7 +278,7 @@ void save_game(const struct Game* game)
 
   if(fp != NULL)
   {
-    fprintf(fp, "%d\n%d\n%d\n", game->num_decks, game->money, game->current_bet);
+    fprintf(fp, "%u\n%u\n%u\n", game->num_decks, game->money, game->current_bet);
     fclose(fp);
   }
 }
@@ -294,10 +294,10 @@ void load_game(struct Game* game)
     sscanf(buffer, "%u", &game->num_decks);
 
     fgets(buffer, sizeof(buffer), fp);
-    sscanf(buffer, "%d", &game->money);
+    sscanf(buffer, "%u", &game->money);
 
     fgets(buffer, sizeof(buffer), fp);
-    sscanf(buffer, "%d", &game->current_bet);
+    sscanf(buffer, "%u", &game->current_bet);
 
     fclose(fp);
   }
@@ -408,7 +408,7 @@ void draw_dealer_hand(const struct Game* game)
     }
   }
 
-  printf(" ⇒  %d", dealer_get_value(dealer_hand, Soft));
+  printf(" ⇒  %u", dealer_get_value(dealer_hand, Soft));
 }
 
 void player_draw_hand(const struct Game* game, unsigned index)
@@ -424,7 +424,7 @@ void player_draw_hand(const struct Game* game, unsigned index)
     printf("%s ", (*game->card_faces)[card->value][card->suite]);
   }
 
-  printf(" ⇒  %d  ", player_get_value(player_hand, Soft));
+  printf(" ⇒  %u  ", player_get_value(player_hand, Soft));
 
   if(player_hand->status == Lost)
   {
@@ -640,7 +640,7 @@ void get_new_bet(struct Game* game)
   clear();
   draw_hands(game);
 
-  printf("  Current Bet: $%d  Enter New Bet: $", (game->current_bet / 100));
+  printf("  Current Bet: $%u  Enter New Bet: $", (game->current_bet / 100));
 
   if(1 != scanf("%u", &tmp))
   {
@@ -659,7 +659,7 @@ void get_new_num_decks(struct Game* game)
   clear();
   draw_hands(game);
 
-  printf("  Number Of Decks: %d  Enter New Number Of Decks (1-8): ", (game->num_decks));
+  printf("  Number Of Decks: %u  Enter New Number Of Decks (1-8): ", (game->num_decks));
 
   if(1 != scanf("%u", &tmp))
   {
