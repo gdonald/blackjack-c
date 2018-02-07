@@ -17,8 +17,8 @@
 #define MAX_BET 10000000
 #define SAVE_FILE "bj.txt"
 
-typedef enum { Soft, Hard } CountMethod;
-typedef enum { Won=1, Lost, Push } HandStatus;
+enum CountMethod { Soft, Hard };
+enum HandStatus { Won=1, Lost, Push };
 
 extern const unsigned shuffle_specs[8][2];
 extern const char* const card_faces[14][4];
@@ -56,7 +56,7 @@ struct PlayerHand
   bool stood;
   bool played;
   bool payed;
-  HandStatus status;
+  enum HandStatus status;
 };
 
 struct Game
@@ -90,8 +90,8 @@ bool dealer_is_busted(const struct DealerHand* dealer_hand);
 bool dealer_upcard_is_ace(const struct DealerHand* dealer_hand);
 bool need_to_shuffle(const struct Game* game);
 
-unsigned player_get_value(const struct PlayerHand* player_hand, CountMethod method);
-unsigned dealer_get_value(const struct DealerHand* dealer_hand, CountMethod method);
+unsigned player_get_value(const struct PlayerHand* player_hand, enum CountMethod method);
+unsigned dealer_get_value(const struct DealerHand* dealer_hand, enum CountMethod method);
 unsigned all_bets(const struct Game* game);
 
 void normalize_bet(struct Game* game);

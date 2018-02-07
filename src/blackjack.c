@@ -35,7 +35,7 @@ bool is_ten(const struct Card* card)
   return card->value > 8;
 }
 
-unsigned player_get_value(const struct PlayerHand* player_hand, CountMethod method)
+unsigned player_get_value(const struct PlayerHand* player_hand, enum CountMethod method)
 {
   unsigned v = 0;
   unsigned total = 0;
@@ -218,7 +218,7 @@ bool need_to_play_dealer_hand(const struct Game* game)
   return false;
 }
 
-unsigned dealer_get_value(const struct DealerHand* dealer_hand, CountMethod method)
+unsigned dealer_get_value(const struct DealerHand* dealer_hand, enum CountMethod method)
 {
   unsigned v = 0;
   unsigned total = 0;
