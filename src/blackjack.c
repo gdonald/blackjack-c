@@ -527,11 +527,17 @@ void shuffle(struct Shoe* shoe)
   {
     for(unsigned i = shoe->num_cards - 1; i > 0; i--)
     {
-      swap(&shoe->cards[i], &shoe->cards[(unsigned)rand() % (i + 1)]);
+      swap(&shoe->cards[i], &shoe->cards[myrand(0, shoe->num_cards - 1)]);
     }
   }
 
   shoe->current_card = 0;
+}
+
+unsigned myrand(unsigned min, unsigned max)
+{
+    double scaled = rand() / (RAND_MAX + 1.0);
+    return (unsigned)((max - min + 1) * scaled + min);
 }
 
 bool dealer_upcard_is_ace(const struct DealerHand* dealer_hand)

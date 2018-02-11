@@ -109,6 +109,7 @@ bool need_to_shuffle(const struct Game* game);
 unsigned player_get_value(const struct PlayerHand* player_hand, enum CountMethod method);
 unsigned dealer_get_value(const struct DealerHand* dealer_hand, enum CountMethod method);
 unsigned all_bets(const struct Game* game);
+unsigned myrand(unsigned min, unsigned max);
 
 void normalize_bet(struct Game* game);
 void save_game(const struct Game* game);
