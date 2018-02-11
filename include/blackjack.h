@@ -2,6 +2,7 @@
 #ifndef BLACKJACK_H
 #define BLACKJACK_H
 
+#include <argp.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,11 +18,23 @@
 #define MAX_BET 10000000
 #define SAVE_FILE "bj.txt"
 
+extern const char* argp_program_version;
+extern const char* argp_program_bug_address;
+extern const char* doc;
+extern const char* args_doc;
+extern struct argp_option options[];
+
 enum CountMethod { Soft, Hard };
 enum HandStatus { Won=1, Lost, Push };
 
 extern const unsigned shuffle_specs[8][2];
 extern const char* const card_faces[14][4];
+
+struct arguments
+{
+  char* args[1];
+  unsigned players;
+};
 
 struct Card
 {
@@ -64,6 +77,7 @@ struct Game
   struct Shoe shoe;
   struct DealerHand dealer_hand;
   struct PlayerHand player_hands[MAX_PLAYER_HANDS];
+  unsigned num_players;
   unsigned num_decks;
   unsigned money;
   unsigned current_bet;
@@ -72,6 +86,8 @@ struct Game
   const unsigned (*shuffle_specs)[2];
   const char* const (*card_faces)[4];
 };
+
+error_t parse_opt(int key, char* arg, struct argp_state* state);
 
 const char* card_to_string(const struct Game* game, const struct Card* card);
 

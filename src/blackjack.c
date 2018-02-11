@@ -1,6 +1,15 @@
 
 #include "blackjack.h"
 
+const char* argp_program_version = "blackjack 0.1";
+const char* argp_program_bug_address = "https://github.com/gdonald/blackjack-c/issues";
+const char* doc = "blackjack -- a simple command line blackjack program";
+
+struct argp_option options[] = {
+  {"players", 'p', "NUM", 0, "Number of players", 0 },
+  { 0 }
+};
+
 const unsigned shuffle_specs[8][2] = { { 95, 8 },
 				       { 92, 7 },
 				       { 89, 6 },
@@ -24,6 +33,23 @@ const char* const card_faces[14][4] = { { "🂡", "🂱", "🃁", "🃑" },
 					{ "🂭", "🂽", "🃍", "🃝" },
 					{ "🂮", "🂾", "🃎", "🃞" },
 					{ "🂠", "",  "",  ""  } };
+
+error_t parse_opt(int key, char* arg, struct argp_state* state)
+{
+  struct arguments* a = state->input;
+
+  switch(key)
+  {
+  case 'p':
+    if(*arg == '0') a->players = 0;
+    break;
+
+  default:
+    return ARGP_ERR_UNKNOWN;
+  }
+
+  return 0;
+}
 
 bool is_ace(const struct Card* card)
 {
