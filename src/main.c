@@ -1,7 +1,7 @@
 
 #include "blackjack.h"
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
   struct argp argp = { options, parse_opt, "", doc, 0, 0, 0 };
   struct arguments arguments = { .players = 1 };
