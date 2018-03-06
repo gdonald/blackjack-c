@@ -1,13 +1,13 @@
 
 #include "blackjack.h"
 
-const char* argp_program_version = "blackjack 0.1";
-const char* argp_program_bug_address = "https://github.com/gdonald/blackjack-c/issues";
-const char* doc = "blackjack -- a simple command line blackjack program";
+const char *argp_program_version = "blackjack 0.1";
+const char *argp_program_bug_address = "https://github.com/gdonald/blackjack-c/issues";
+const char *doc = "blackjack -- a simple command line blackjack program";
 
 struct argp_option options[] = {
   {"players", 'p', "NUM", 0, "Number of players", 0 },
-  { 0 }
+  { 0, 0, 0, 0, 0, 0 }
 };
 
 const unsigned shuffle_specs[8][2] = { { 95, 8 },
@@ -19,7 +19,7 @@ const unsigned shuffle_specs[8][2] = { { 95, 8 },
 				       { 81, 2 },
 				       { 80, 1 } };
 
-const char* const card_faces[14][4] = { { "🂡", "🂱", "🃁", "🃑" },
+const char *const card_faces[14][4] = { { "🂡", "🂱", "🃁", "🃑" },
 					{ "🂢", "🂲", "🃂", "🃒" },
 					{ "🂣", "🂳", "🃃", "🃓" },
 					{ "🂤", "🂴", "🃄", "🃔" },
@@ -34,9 +34,9 @@ const char* const card_faces[14][4] = { { "🂡", "🂱", "🃁", "🃑" },
 					{ "🂮", "🂾", "🃎", "🃞" },
 					{ "🂠", "",  "",  ""  } };
 
-error_t parse_opt(int key, char* arg, struct argp_state* state)
+error_t parse_opt(int key, char *arg, struct argp_state *state)
 {
-  struct arguments* a = state->input;
+  struct arguments *a = state->input;
 
   switch(key)
   {
@@ -51,17 +51,17 @@ error_t parse_opt(int key, char* arg, struct argp_state* state)
   return 0;
 }
 
-bool is_ace(const struct Card* card)
+bool is_ace(const struct Card *card)
 {
   return card->value == 0;
 }
 
-bool is_ten(const struct Card* card)
+bool is_ten(const struct Card *card)
 {
   return card->value > 8;
 }
 
-unsigned player_get_value(const struct PlayerHand* player_hand, enum CountMethod method)
+unsigned player_get_value(const struct PlayerHand *player_hand, enum CountMethod method)
 {
   unsigned v = 0;
   unsigned total = 0;
@@ -88,12 +88,12 @@ unsigned player_get_value(const struct PlayerHand* player_hand, enum CountMethod
   return total;
 }
 
-bool player_is_busted(const struct PlayerHand* player_hand)
+bool player_is_busted(const struct PlayerHand *player_hand)
 {
   return player_get_value(player_hand, Soft) > 21;
 }
 
-bool is_blackjack(const struct Hand* hand)
+bool is_blackjack(const struct Hand *hand)
 {
   if(hand->num_cards != 2)
   {
@@ -113,7 +113,7 @@ bool is_blackjack(const struct Hand* hand)
   return false;
 }
 
-bool player_can_hit(const struct PlayerHand* player_hand)
+bool player_can_hit(const struct PlayerHand *player_hand)
 {
   if(player_hand->played
      || player_hand->stood
@@ -127,7 +127,7 @@ bool player_can_hit(const struct PlayerHand* player_hand)
   return true;
 }
 
-bool player_can_stand(const struct PlayerHand* player_hand)
+bool player_can_stand(const struct PlayerHand *player_hand)
 {
   if(player_hand->stood
      || player_is_busted(player_hand)
@@ -139,7 +139,7 @@ bool player_can_stand(const struct PlayerHand* player_hand)
   return true;
 }
 
-unsigned all_bets(const struct Game* game)
+unsigned all_bets(const struct Game *game)
 {
   unsigned bets = 0;
 
@@ -151,9 +151,9 @@ unsigned all_bets(const struct Game* game)
   return bets;
 }
 
-bool player_can_split(const struct Game* game)
+bool player_can_split(const struct Game *game)
 { 
-  const struct PlayerHand* player_hand = &game->player_hands[game->current_player_hand];
+  const struct PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
 
   if(player_hand->stood || game->total_player_hands >= MAX_PLAYER_HANDS)
   {
@@ -173,9 +173,9 @@ bool player_can_split(const struct Game* game)
   return false;
 }
 
-bool player_can_dbl(const struct Game* game)
+bool player_can_dbl(const struct Game *game)
 {
-  const struct PlayerHand* player_hand = &game->player_hands[game->current_player_hand];
+  const struct PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
 
   if(game->money < all_bets(game) + player_hand->bet)
   {
@@ -193,12 +193,12 @@ bool player_can_dbl(const struct Game* game)
   return true;
 }
 
-void deal_card(struct Shoe* shoe, struct Hand* hand)
+void deal_card(struct Shoe *shoe, struct Hand *hand)
 {
   hand->cards[hand->num_cards++] = shoe->cards[shoe->current_card++];
 }
 
-bool player_is_done(struct Game* game, struct PlayerHand* player_hand)
+bool player_is_done(struct Game *game, struct PlayerHand *player_hand)
 {
   if(player_hand->played
      || player_hand->stood
@@ -222,14 +222,14 @@ bool player_is_done(struct Game* game, struct PlayerHand* player_hand)
   return false;
 }
 
-bool more_hands_to_play(const struct Game* game)
+bool more_hands_to_play(const struct Game *game)
 {
   return game->current_player_hand < game->total_player_hands - 1;
 }
 
-bool need_to_play_dealer_hand(const struct Game* game)
+bool need_to_play_dealer_hand(const struct Game *game)
 {
-  const struct PlayerHand* player_hand;
+  const struct PlayerHand *player_hand;
 
   for(unsigned x = 0; x < game->total_player_hands; ++x)
   {
@@ -244,7 +244,7 @@ bool need_to_play_dealer_hand(const struct Game* game)
   return false;
 }
 
-unsigned dealer_get_value(const struct DealerHand* dealer_hand, enum CountMethod method)
+unsigned dealer_get_value(const struct DealerHand *dealer_hand, enum CountMethod method)
 {
   unsigned v = 0;
   unsigned total = 0;
@@ -276,12 +276,12 @@ unsigned dealer_get_value(const struct DealerHand* dealer_hand, enum CountMethod
   return total;
 }
 
-bool dealer_is_busted(const struct DealerHand* dealer_hand)
+bool dealer_is_busted(const struct DealerHand *dealer_hand)
 {
   return dealer_get_value(dealer_hand, Soft) > 21;
 }
 
-void normalize_bet(struct Game* game)
+void normalize_bet(struct Game *game)
 {
   if(game->current_bet < MIN_BET)
   {
@@ -298,9 +298,9 @@ void normalize_bet(struct Game* game)
   }
 }
 
-void save_game(const struct Game* game)
+void save_game(const struct Game *game)
 {
-  FILE* fp = fopen(SAVE_FILE, "w");
+  FILE *fp = fopen(SAVE_FILE, "w");
 
   if(fp != NULL)
   {
@@ -309,9 +309,9 @@ void save_game(const struct Game* game)
   }
 }
 
-void load_game(struct Game* game)
+void load_game(struct Game *game)
 {
-  FILE* fp = fopen(SAVE_FILE, "r");
+  FILE *fp = fopen(SAVE_FILE, "r");
   char buffer[32];
 
   if(fp != NULL)
@@ -329,12 +329,12 @@ void load_game(struct Game* game)
   }
 }
 
-void pay_hands(struct Game* game)
+void pay_hands(struct Game *game)
 {
-  struct DealerHand* dealer_hand = &game->dealer_hand;
+  struct DealerHand *dealer_hand = &game->dealer_hand;
   unsigned dhv = dealer_get_value(dealer_hand, Soft);
   bool dhb = dealer_is_busted(dealer_hand);
-  struct PlayerHand* player_hand;
+  struct PlayerHand *player_hand;
   unsigned phv;
 
   for(unsigned x = 0; x < game->total_player_hands; ++x)
@@ -375,9 +375,9 @@ void pay_hands(struct Game* game)
   save_game(game);
 }
 
-void play_dealer_hand(struct Game* game)
+void play_dealer_hand(struct Game *game)
 {
-  struct DealerHand* dealer_hand = &game->dealer_hand;
+  struct DealerHand *dealer_hand = &game->dealer_hand;
   unsigned soft_count;
   unsigned hard_count;
 
@@ -414,10 +414,10 @@ void clear(void)
   system("export TERM=linux; clear");
 }
 
-void draw_dealer_hand(const struct Game* game)
+void draw_dealer_hand(const struct Game *game)
 {
-  const struct DealerHand* dealer_hand = &game->dealer_hand;
-  const struct Card* card;
+  const struct DealerHand *dealer_hand = &game->dealer_hand;
+  const struct Card *card;
 
   printf(" ");
 
@@ -437,10 +437,10 @@ void draw_dealer_hand(const struct Game* game)
   printf(" ⇒  %u", dealer_get_value(dealer_hand, Soft));
 }
 
-void player_draw_hand(const struct Game* game, unsigned index)
+void player_draw_hand(const struct Game *game, unsigned index)
 {
-  const struct PlayerHand* player_hand = &game->player_hands[index];
-  const struct Card* card;
+  const struct PlayerHand *player_hand = &game->player_hands[index];
+  const struct Card *card;
 
   printf(" ");
 
@@ -486,7 +486,7 @@ void player_draw_hand(const struct Game* game, unsigned index)
   printf("\n\n");
 }
 
-void draw_hands(const struct Game* game)
+void draw_hands(const struct Game *game)
 {
   clear();
   printf("\n Dealer: \n");
@@ -499,7 +499,7 @@ void draw_hands(const struct Game* game)
   }
 }
 
-bool need_to_shuffle(const struct Game* game)
+bool need_to_shuffle(const struct Game *game)
 {
   unsigned used = (unsigned)((game->shoe.current_card / (double) game->shoe.num_cards) * 100.0);
 
@@ -514,14 +514,14 @@ bool need_to_shuffle(const struct Game* game)
   return false;
 }
 
-void swap(struct Card* a, struct Card* b)
+void swap(struct Card *a, struct Card *b)
 {
   struct Card tmp = *a;
   *a = *b;
   *b = tmp;
 }
 
-void shuffle(struct Shoe* shoe)
+void shuffle(struct Shoe *shoe)
 {
   for(unsigned x = 0; x < 7; x++)
   {
@@ -540,14 +540,14 @@ unsigned myrand(unsigned min, unsigned max)
     return (unsigned)((max - min + 1) * scaled + min);
 }
 
-bool dealer_upcard_is_ace(const struct DealerHand* dealer_hand)
+bool dealer_upcard_is_ace(const struct DealerHand *dealer_hand)
 {
   return is_ace(&dealer_hand->hand.cards[0]);
 }
 
-void insure_hand(struct Game* game)
+void insure_hand(struct Game *game)
 {
-  struct PlayerHand* player_hand = &game->player_hands[game->current_player_hand];
+  struct PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
 
   player_hand->bet /= 2;
   player_hand->played = true;
@@ -559,10 +559,10 @@ void insure_hand(struct Game* game)
   bet_options(game);
 }
 
-void no_insurance(struct Game* game)
+void no_insurance(struct Game *game)
 {
-  struct DealerHand* dealer_hand = &game->dealer_hand;
-  struct PlayerHand* player_hand;
+  struct DealerHand *dealer_hand = &game->dealer_hand;
+  struct PlayerHand *player_hand;
 
   if(is_blackjack(&dealer_hand->hand))
   {
@@ -589,7 +589,7 @@ void no_insurance(struct Game* game)
   player_get_action(game);
 }
 
-void ask_insurance(struct Game* game)
+void ask_insurance(struct Game *game)
 {
   printf(" Insurance?  (Y) Yes  (N) No\n");
   bool br = false;
@@ -621,11 +621,11 @@ void ask_insurance(struct Game* game)
   }
 }
 
-void deal_new_hand(struct Game* game)
+void deal_new_hand(struct Game *game)
 {
   struct PlayerHand player_hand = { .bet=game->current_bet };
-  struct DealerHand* dealer_hand = &game->dealer_hand;
-  struct Shoe* shoe = &game->shoe;
+  struct DealerHand *dealer_hand = &game->dealer_hand;
+  struct Shoe *shoe = &game->shoe;
 
   if(need_to_shuffle(game))
   {
@@ -665,7 +665,7 @@ void deal_new_hand(struct Game* game)
   save_game(game);
 }
 
-void get_new_bet(struct Game* game)
+void get_new_bet(struct Game *game)
 {
   unsigned tmp;
 
@@ -684,7 +684,7 @@ void get_new_bet(struct Game* game)
   deal_new_hand(game);
 }
 
-void get_new_num_decks(struct Game* game)
+void get_new_num_decks(struct Game *game)
 {
   unsigned tmp;
 
@@ -705,7 +705,7 @@ void get_new_num_decks(struct Game* game)
   game_options(game);
 }
 
-void get_new_deck_type(struct Game* game)
+void get_new_deck_type(struct Game *game)
 {
   bool br = false;
   char c = { 0 };
@@ -760,7 +760,7 @@ void get_new_deck_type(struct Game* game)
   }
 }
 
-void game_options(struct Game* game)
+void game_options(struct Game *game)
 {
   bool br = false;
   char c = { 0 };
@@ -800,7 +800,7 @@ void game_options(struct Game* game)
   }
 }
 
-void bet_options(struct Game* game)
+void bet_options(struct Game *game)
 {
   bool br = false;
   char c = { 0 };
@@ -840,7 +840,7 @@ void bet_options(struct Game* game)
   }
 }
 
-void process(struct Game* game)
+void process(struct Game *game)
 {
   if(more_hands_to_play(game))
   {
@@ -853,9 +853,9 @@ void process(struct Game* game)
   bet_options(game);
 }
 
-void play_more_hands(struct Game* game)
+void play_more_hands(struct Game *game)
 {
-  struct PlayerHand* player_hand = &game->player_hands[++(game->current_player_hand)];
+  struct PlayerHand *player_hand = &game->player_hands[++(game->current_player_hand)];
   deal_card(&game->shoe, &player_hand->hand);
 
   if(player_is_done(game, player_hand))
@@ -868,9 +868,9 @@ void play_more_hands(struct Game* game)
   player_get_action(game);
 }
 
-void player_hit(struct Game* game)
+void player_hit(struct Game *game)
 {
-  struct PlayerHand* player_hand = &game->player_hands[game->current_player_hand];
+  struct PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
   deal_card(&game->shoe, &player_hand->hand);
 
   if(player_is_done(game, player_hand))
@@ -883,9 +883,9 @@ void player_hit(struct Game* game)
   player_get_action(game);
 }
 
-void player_stand(struct Game* game)
+void player_stand(struct Game *game)
 {
-  struct PlayerHand* player_hand = &game->player_hands[game->current_player_hand];
+  struct PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
 
   player_hand->stood = true;
   player_hand->played = true;
@@ -901,12 +901,12 @@ void player_stand(struct Game* game)
   bet_options(game);
 }
 
-void player_split(struct Game* game)
+void player_split(struct Game *game)
 {
   struct PlayerHand new_hand = { .bet=game->current_bet };
   unsigned hand_count = game->total_player_hands;
-  struct PlayerHand* this_hand;
-  struct PlayerHand* split_hand;
+  struct PlayerHand *this_hand;
+  struct PlayerHand *split_hand;
   struct Card card;
 
   if(!player_can_split(game))
@@ -943,9 +943,9 @@ void player_split(struct Game* game)
   player_get_action(game);
 }
 
-void player_dbl(struct Game* game)
+void player_dbl(struct Game *game)
 {
-  struct PlayerHand* player_hand = &game->player_hands[game->current_player_hand];
+  struct PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
 
   deal_card(&game->shoe, &player_hand->hand);
   player_hand->played = true;
@@ -957,14 +957,14 @@ void player_dbl(struct Game* game)
   }
 }
 
-const char* card_to_string(const struct Game* game, const struct Card* card)
+const char *card_to_string(const struct Game *game, const struct Card *card)
 {
   return game->card_faces[card->value][card->suite];
 }
 
-void player_get_action(struct Game* game)
+void player_get_action(struct Game *game)
 {
-  struct PlayerHand* player_hand = &game->player_hands[game->current_player_hand];
+  struct PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
   bool br = false;
   char c = { 0 };
 
@@ -1010,21 +1010,21 @@ void player_get_action(struct Game* game)
   }
 }
 
-void buffer_off(struct termios* term)
+void buffer_off(struct termios *term)
 {
   tcgetattr(STDIN_FILENO, term);
   term->c_lflag &= (unsigned)~ICANON;
   tcsetattr(STDIN_FILENO, TCSANOW, term);
 }
 
-void buffer_on(struct termios* term)
+void buffer_on(struct termios *term)
 {
   tcgetattr(STDIN_FILENO, term);
   term->c_lflag |= ICANON;
   tcsetattr(STDIN_FILENO, TCSANOW, term);
 }
 
-void new_regular(struct Game* game)
+void new_regular(struct Game *game)
 {
   struct Card c;
   game->shoe.num_cards = 0;
@@ -1046,7 +1046,7 @@ void new_regular(struct Game* game)
   shuffle(&game->shoe);
 }
 
-void new_aces(struct Game* game)
+void new_aces(struct Game *game)
 {
   struct Card c = { .value = 0 };
   game->shoe.num_cards = 0;
@@ -1061,7 +1061,7 @@ void new_aces(struct Game* game)
   }
 }
 
-void new_aces_jacks(struct Game* game)
+void new_aces_jacks(struct Game *game)
 {
   struct Card c1 = { .value = 0 };
   struct Card c2 = { .value = 10 };
@@ -1082,7 +1082,7 @@ void new_aces_jacks(struct Game* game)
   shuffle(&game->shoe);
 }
 
-void new_jacks(struct Game* game)
+void new_jacks(struct Game *game)
 {
   struct Card c = { .value = 10 };
   game->shoe.num_cards = 0;
@@ -1097,7 +1097,7 @@ void new_jacks(struct Game* game)
   }
 }
 
-void new_sevens(struct Game* game)
+void new_sevens(struct Game *game)
 {
   struct Card c = { .value = 6 };
   game->shoe.num_cards = 0;
@@ -1112,7 +1112,7 @@ void new_sevens(struct Game* game)
   }
 }
 
-void new_eights(struct Game* game)
+void new_eights(struct Game *game)
 {
   struct Card c = { .value = 7 };
   game->shoe.num_cards = 0;
