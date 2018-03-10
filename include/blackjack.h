@@ -39,7 +39,7 @@ struct arguments
 struct Card
 {
   unsigned value;
-  unsigned suite;
+  unsigned suit;
 };
 
 struct Shoe

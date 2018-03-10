@@ -430,7 +430,7 @@ void draw_dealer_hand(const struct Game *game)
     else
     {
       card = &dealer_hand->hand.cards[i];
-      printf("%s ", game->card_faces[card->value][card->suite]);
+      printf("%s ", game->card_faces[card->value][card->suit]);
     }
   }
 
@@ -447,7 +447,7 @@ void player_draw_hand(const struct Game *game, unsigned index)
   for(unsigned i = 0; i < player_hand->hand.num_cards; ++i)
   {
     card = &player_hand->hand.cards[i];
-    printf("%s ", game->card_faces[card->value][card->suite]);
+    printf("%s ", game->card_faces[card->value][card->suit]);
   }
 
   printf(" ⇒  %u  ", player_get_value(player_hand, Soft));
@@ -959,7 +959,7 @@ void player_dbl(struct Game *game)
 
 const char *card_to_string(const struct Game *game, const struct Card *card)
 {
-  return game->card_faces[card->value][card->suite];
+  return game->card_faces[card->value][card->suit];
 }
 
 void player_get_action(struct Game *game)
@@ -1031,9 +1031,9 @@ void new_regular(struct Game *game)
 
   for(unsigned deck = 0; deck < game->num_decks; ++deck)
   {
-    for(unsigned suite = 0; suite < 4; ++suite)
+    for(unsigned suit = 0; suit < 4; ++suit)
     {
-      c.suite = suite;
+      c.suit = suit;
 
       for(unsigned value = 0; value < 13; ++value)
       {
@@ -1053,9 +1053,9 @@ void new_aces(struct Game *game)
 
   for(unsigned deck = 0; deck < game->num_decks * 5; ++deck)
   {
-    for(unsigned suite = 0; suite < 4; ++suite)
+    for(unsigned suit = 0; suit < 4; ++suit)
     {
-      c.suite = suite;
+      c.suit = suit;
       game->shoe.cards[game->shoe.num_cards++] = c;
     }
   }
@@ -1069,12 +1069,12 @@ void new_aces_jacks(struct Game *game)
 
   for(unsigned deck = 0; deck < game->num_decks * 4; ++deck)
   {
-    for(unsigned suite = 0; suite < 4; ++suite)
+    for(unsigned suit = 0; suit < 4; ++suit)
     {
-      c1.suite = suite;
+      c1.suit = suit;
       game->shoe.cards[game->shoe.num_cards++] = c1;
 
-      c2.suite = suite;
+      c2.suit = suit;
       game->shoe.cards[game->shoe.num_cards++] = c2;
     }
   }
@@ -1089,9 +1089,9 @@ void new_jacks(struct Game *game)
 
   for(unsigned deck = 0; deck < game->num_decks * 5; ++deck)
   {
-    for(unsigned suite = 0; suite < 4; ++suite)
+    for(unsigned suit = 0; suit < 4; ++suit)
     {
-      c.suite = suite;
+      c.suit = suit;
       game->shoe.cards[game->shoe.num_cards++] = c;
     }
   }
@@ -1104,9 +1104,9 @@ void new_sevens(struct Game *game)
 
   for(unsigned deck = 0; deck < game->num_decks * 5; ++deck)
   {
-    for(unsigned suite = 0; suite < 4; ++suite)
+    for(unsigned suit = 0; suit < 4; ++suit)
     {
-      c.suite = suite;
+      c.suit = suit;
       game->shoe.cards[game->shoe.num_cards++] = c;
     }
   }
@@ -1119,9 +1119,9 @@ void new_eights(struct Game *game)
 
   for(unsigned deck = 0; deck < game->num_decks * 5; ++deck)
   {
-    for(unsigned suite = 0; suite < 4; ++suite)
+    for(unsigned suit = 0; suit < 4; ++suit)
     {
-      c.suite = suite;
+      c.suit = suit;
       game->shoe.cards[game->shoe.num_cards++] = c;
     }
   }
