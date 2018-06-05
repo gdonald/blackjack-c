@@ -2,7 +2,7 @@
 Console Blackjack in C
 
 ## Build
-    git clone https://github.com/gdonald/blackjack-c.git
+    git clone https://gitlab.com/gdonald/blackjack-c.git
     cd blackjack-c
     make
 
@@ -13,7 +13,7 @@ Console Blackjack in C
 
 Increase your terminal font size to see the cards better:
 
-![Blackjack](https://raw.githubusercontent.com/gdonald/blackjack-c/master/bj.png)
+![Blackjack](https://gitlab.com/gdonald/blackjack-c/raw/master/bj.png)
 
 ## License
 
