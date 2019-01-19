@@ -3,10 +3,7 @@
 
 int main(int argc, char *argv[])
 {
-  struct argp argp = { options, parse_opt, "", doc, 0, 0, 0 };
   struct arguments arguments = { .players = 1 };
-  argp_parse(&argp, argc, argv, 0, 0, &arguments);
-
   srand((unsigned)time(NULL));
 
   struct Game game = { .num_decks = 8,

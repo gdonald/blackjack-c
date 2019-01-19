@@ -2,7 +2,6 @@
 #ifndef BLACKJACK_H
 #define BLACKJACK_H
 
-#include <argp.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +21,6 @@ extern const char *argp_program_version;
 extern const char *argp_program_bug_address;
 extern const char *doc;
 extern const char *args_doc;
-extern struct argp_option options[];
 
 enum CountMethod { Soft, Hard };
 enum HandStatus { Won=1, Lost, Push };
@@ -87,7 +85,7 @@ struct Game
   const char *const (*card_faces)[4];
 };
 
-error_t parse_opt(int key, char *arg, struct argp_state *state);
+//error_t parse_opt(int key, char *arg, struct argp_state *state);
 
 const char *card_to_string(const struct Game *game, const struct Card *card);
 

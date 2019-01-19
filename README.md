@@ -13,7 +13,7 @@ Console Blackjack in C
 
 Increase your terminal font size to see the cards better:
 
-![Blackjack](https://gitlab.com/gdonald/blackjack-c/raw/master/bj.png)
+![Blackjack](https://raw.githubusercontent.com/gdonald/blackjack-c/master/bj.png)
 
 ## License
 
