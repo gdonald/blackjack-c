@@ -6,6 +6,11 @@ Console Blackjack in C
     cd blackjack-c
     make
 
+or if you're on a BSD system
+
+    make -f Makefile.bsd
+
+
 ## Run
     ./blackjack
 
