@@ -2,14 +2,8 @@
 Console Blackjack in C
 
 ## Build
-    git clone https://gitlab.com/gdonald/blackjack-c.git
-    cd blackjack-c
+    cmake .
     make
-
-or if you're on a BSD system
-
-    make -f Makefile.bsd
-
 
 ## Run
     ./blackjack
