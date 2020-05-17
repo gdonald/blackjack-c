@@ -28,10 +28,6 @@ enum HandStatus {
 extern const unsigned shuffle_specs[8][2];
 extern const char *const card_faces[14][4];
 
-struct arguments {
-  unsigned players;
-};
-
 struct Card {
   unsigned value;
   unsigned suit;
@@ -66,7 +62,6 @@ struct Game {
   struct Shoe shoe;
   struct DealerHand dealer_hand;
   struct PlayerHand player_hands[MAX_PLAYER_HANDS];
-  unsigned num_players;
   unsigned num_decks;
   unsigned money;
   unsigned current_bet;

@@ -34,13 +34,11 @@ bool is_ten(const struct Card *card) {
 }
 
 unsigned player_get_value(const struct PlayerHand *player_hand, enum CountMethod method) {
-  unsigned v = 0;
   unsigned total = 0;
-  unsigned tmp_v;
 
   for (unsigned x = 0; x < player_hand->hand.num_cards; ++x) {
-    tmp_v = player_hand->hand.cards[x].value + 1;
-    v = tmp_v > 9 ? 10 : tmp_v;
+    unsigned tmp_v = player_hand->hand.cards[x].value + 1;
+    unsigned v = tmp_v > 9 ? 10 : tmp_v;
 
     if (method == Soft && v == 1 && total < 11) {
       v = 11;
@@ -69,11 +67,7 @@ bool is_blackjack(const struct Hand *hand) {
     return true;
   }
 
-  if (is_ace(&hand->cards[1]) && is_ten(&hand->cards[0])) {
-    return true;
-  }
-
-  return false;
+  return is_ace(&hand->cards[1]) && is_ten(&hand->cards[0]);
 }
 
 bool player_can_hit(const struct PlayerHand *player_hand) {
@@ -119,11 +113,7 @@ bool player_can_split(const struct Game *game) {
     return false;
   }
 
-  if (player_hand->hand.num_cards == 2 && player_hand->hand.cards[0].value == player_hand->hand.cards[1].value) {
-    return true;
-  }
-
-  return false;
+  return player_hand->hand.num_cards == 2 && player_hand->hand.cards[0].value == player_hand->hand.cards[1].value;
 }
 
 bool player_can_dbl(const struct Game *game) {
@@ -240,9 +230,10 @@ void save_game(const struct Game *game) {
 
 void load_game(struct Game *game) {
   FILE *fp = fopen(SAVE_FILE, "r");
-  char buffer[32];
 
   if (fp != NULL) {
+    char buffer[32];
+
     fgets(buffer, sizeof(buffer), fp);
     game->num_decks = strtoul(buffer, NULL, 0);
 
@@ -345,12 +336,11 @@ void draw_dealer_hand(const struct Game *game) {
 
 void player_draw_hand(const struct Game *game, unsigned index) {
   const struct PlayerHand *player_hand = &game->player_hands[index];
-  const struct Card *card;
 
   printf(" ");
 
   for (unsigned i = 0; i < player_hand->hand.num_cards; ++i) {
-    card = &player_hand->hand.cards[i];
+    const struct Card *card = &player_hand->hand.cards[i];
     printf("%s ", game->card_faces[card->value][card->suit]);
   }
 
@@ -470,10 +460,9 @@ void no_insurance(struct Game *game) {
 
 void ask_insurance(struct Game *game) {
   printf(" Insurance?  (Y) Yes  (N) No\n");
-  char c;
 
   while (true) {
-    c = (char) getchar();
+    char c = (char) getchar();
 
     switch (c) {
       case 'y':
@@ -570,14 +559,12 @@ void get_new_num_decks(struct Game *game) {
 }
 
 void get_new_deck_type(struct Game *game) {
-  char c;
-
   clear();
   draw_hands(game);
   printf(" (1) Regular  (2) Aces  (3) Jacks  (4) Aces & Jacks  (5) Sevens  (6) Eights\n");
 
   while (true) {
-    c = (char) getchar();
+    char c = (char) getchar();
 
     switch (c) {
       case '1':
@@ -611,14 +598,12 @@ void get_new_deck_type(struct Game *game) {
 }
 
 void game_options(struct Game *game) {
-  char c;
-
   clear();
   draw_hands(game);
   printf(" (N) Number of Decks  (T) Deck Type  (B) Back\n");
 
   while (true) {
-    c = (char) getchar();
+    char c = (char) getchar();
 
     switch (c) {
       case 'n':
@@ -643,12 +628,10 @@ void game_options(struct Game *game) {
 }
 
 void bet_options(struct Game *game) {
-  char c;
-
   printf(" (D) Deal Hand  (B) Change Bet  (O) Options  (Q) Quit\n");
 
   while (true) {
-    c = (char) getchar();
+    char c = (char) getchar();
 
     switch (c) {
       case 'd':
@@ -778,8 +761,6 @@ void player_dbl(struct Game *game) {
 
 void player_get_action(struct Game *game) {
   struct PlayerHand *player_hand = &game->player_hands[game->current_player_hand];
-  char c;
-
   printf(" ");
 
   if (player_can_hit(player_hand)) printf("(H) Hit  ");
@@ -790,7 +771,7 @@ void player_get_action(struct Game *game) {
   printf("\n");
 
   while (true) {
-    c = (char) getchar();
+    char c = (char) getchar();
 
     switch (c) {
       case 'h':
