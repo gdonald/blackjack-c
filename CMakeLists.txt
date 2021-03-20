@@ -4,6 +4,10 @@ project(blackjack)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_COMPILER clang)
 
+IF (APPLE)
+    set(LIBRARY_PATH /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib)
+ENDIF (APPLE)
+
 include_directories(include)
 
 add_executable(blackjack
