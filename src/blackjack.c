@@ -10,20 +10,35 @@ const unsigned shuffle_specs[8][2] = {{95, 8},
                                       {81, 2},
                                       {80, 1}};
 
-const char *const card_faces[14][4] = {{"🂡", "🂱", "🃁", "🃑"},
-                                       {"🂢", "🂲", "🃂", "🃒"},
-                                       {"🂣", "🂳", "🃃", "🃓"},
-                                       {"🂤", "🂴", "🃄", "🃔"},
-                                       {"🂥", "🂵", "🃅", "🃕"},
-                                       {"🂦", "🂶", "🃆", "🃖"},
-                                       {"🂧", "🂷", "🃇", "🃗"},
-                                       {"🂨", "🂸", "🃈", "🃘"},
-                                       {"🂩", "🂹", "🃉", "🃙"},
-                                       {"🂪", "🂺", "🃊", "🃚"},
-                                       {"🂫", "🂻", "🃋", "🃛"},
-                                       {"🂭", "🂽", "🃍", "🃝"},
-                                       {"🂮", "🂾", "🃎", "🃞"},
-                                       {"🂠", "",   "",   ""}};
+const char *const faces[14][4] = {{"A♠", "A♥", "A♣", "A♦"},
+                                  {"2♠", "2♥", "2♣", "2♦"},
+                                  {"3♠", "3♥", "3♣", "3♦"},
+                                  {"4♠", "4♥", "4♣", "4♦"},
+                                  {"5♠", "5♥", "5♣", "5♦"},
+                                  {"6♠", "6♥", "6♣", "6♦"},
+                                  {"7♠", "7♥", "7♣", "7♦"},
+                                  {"8♠", "8♥", "8♣", "8♦"},
+                                  {"9♠", "9♥", "9♣", "9♦"},
+                                  {"T♠", "T♥", "T♣", "T♦"},
+                                  {"J♠", "J♥", "J♣", "J♦"},
+                                  {"Q♠", "Q♥", "Q♣", "Q♦"},
+                                  {"K♠", "K♥", "K♣", "K♦"},
+                                  {"??", "",   "",   ""},};
+
+const char *const faces2[14][4] = {{"🂡", "🂱", "🃁", "🃑"},
+                                   {"🂢", "🂲", "🃂", "🃒"},
+                                   {"🂣", "🂳", "🃃", "🃓"},
+                                   {"🂤", "🂴", "🃄", "🃔"},
+                                   {"🂥", "🂵", "🃅", "🃕"},
+                                   {"🂦", "🂶", "🃆", "🃖"},
+                                   {"🂧", "🂷", "🃇", "🃗"},
+                                   {"🂨", "🂸", "🃈", "🃘"},
+                                   {"🂩", "🂹", "🃉", "🃙"},
+                                   {"🂪", "🂺", "🃊", "🃚"},
+                                   {"🂫", "🂻", "🃋", "🃛"},
+                                   {"🂭", "🂽", "🃍", "🃝"},
+                                   {"🂮", "🂾", "🃎", "🃞"},
+                                   {"🂠", "",   "",   ""}};
 
 bool is_ace(const struct Card *card) {
   return card->value == 0;
@@ -223,7 +238,12 @@ void save_game(const struct Game *game) {
   FILE *fp = fopen(SAVE_FILE, "w");
 
   if (fp != NULL) {
-    fprintf(fp, "%u\n%u\n%u\n", game->num_decks, game->money, game->current_bet);
+    fprintf(fp, "%u\n%u\n%u\n%u\n%u\n",
+            game->num_decks,
+            game->money,
+            game->current_bet,
+            game->deck_type,
+            game->face_type);
     fclose(fp);
   }
 }
@@ -242,6 +262,12 @@ void load_game(struct Game *game) {
 
     fgets(buffer, sizeof(buffer), fp);
     game->current_bet = strtoul(buffer, NULL, 0);
+
+    fgets(buffer, sizeof(buffer), fp);
+    game->deck_type = strtoul(buffer, NULL, 0);
+
+    fgets(buffer, sizeof(buffer), fp);
+    game->face_type = strtoul(buffer, NULL, 0);
 
     fclose(fp);
   }
@@ -316,6 +342,14 @@ void clear(void) {
   system("export TERM=linux; clear");
 }
 
+const char *get_card_face(const struct Game *game, unsigned value, unsigned suit) {
+  if (game->face_type == 2) {
+    return game->faces2[value][suit];
+  }
+
+  return game->faces[value][suit];
+}
+
 void draw_dealer_hand(const struct Game *game) {
   const struct DealerHand *dealer_hand = &game->dealer_hand;
   const struct Card *card;
@@ -324,10 +358,10 @@ void draw_dealer_hand(const struct Game *game) {
 
   for (unsigned i = 0; i < dealer_hand->hand.num_cards; ++i) {
     if (i == 1 && dealer_hand->hide_down_card) {
-      printf("%s ", game->card_faces[13][0]);
+      printf("%s ", get_card_face(game, 13, 0));
     } else {
       card = &dealer_hand->hand.cards[i];
-      printf("%s ", game->card_faces[card->value][card->suit]);
+      printf("%s ", get_card_face(game, card->value, card->suit));
     }
   }
 
@@ -341,7 +375,7 @@ void player_draw_hand(const struct Game *game, unsigned index) {
 
   for (unsigned i = 0; i < player_hand->hand.num_cards; ++i) {
     const struct Card *card = &player_hand->hand.cards[i];
-    printf("%s ", game->card_faces[card->value][card->suit]);
+    printf("%s ", get_card_face(game, card->value, card->suit));
   }
 
   printf(" ⇒  %u  ", player_get_value(player_hand, Soft));
@@ -383,6 +417,10 @@ void draw_hands(const struct Game *game) {
 }
 
 bool need_to_shuffle(const struct Game *game) {
+  if (game->shoe.num_cards == 0) {
+    return true;
+  }
+
   unsigned used = (unsigned) ((game->shoe.current_card / (double) game->shoe.num_cards) * 100.0);
 
   for (unsigned x = 0; x < MAX_DECKS; ++x) {
@@ -488,7 +526,7 @@ void deal_new_hand(struct Game *game) {
   struct Shoe *shoe = &game->shoe;
 
   if (need_to_shuffle(game)) {
-    shuffle(shoe);
+    build_new_shoe(game);
   }
 
   dealer_hand->hide_down_card = true;
@@ -536,6 +574,7 @@ void get_new_bet(struct Game *game) {
 
   game->current_bet = tmp * 100;
   normalize_bet(game);
+  save_game(game);
   deal_new_hand(game);
 }
 
@@ -555,6 +594,7 @@ void get_new_num_decks(struct Game *game) {
   if (tmp > 8) tmp = 8;
 
   game->num_decks = tmp;
+  save_game(game);
   game_options(game);
 }
 
@@ -565,32 +605,50 @@ void get_new_deck_type(struct Game *game) {
 
   while (true) {
     char c = (char) getchar();
+    unsigned tmp = c - '0';
+    game->deck_type = tmp;
+
+    if (game->deck_type > 0 && game->deck_type < 7) {
+      if (game->deck_type > 1) {
+        game->num_decks = 8;
+      }
+
+      build_new_shoe(game);
+    } else {
+      clear();
+      draw_hands(game);
+      get_new_deck_type(game);
+    }
+
+    save_game(game);
+    draw_hands(game);
+    bet_options(game);
+    break;
+  }
+}
+
+void get_new_face_type(struct Game *game) {
+  clear();
+  draw_hands(game);
+  printf(" (1) A♠  (2) 🂡\n");
+
+  while (true) {
+    char c = (char) getchar();
 
     switch (c) {
       case '1':
-        new_regular(game);
+        game->face_type = 1;
         break;
       case '2':
-        new_aces(game);
-        break;
-      case '3':
-        new_jacks(game);
-        break;
-      case '4':
-        new_aces_jacks(game);
-        break;
-      case '5':
-        new_sevens(game);
-        break;
-      case '6':
-        new_eights(game);
+        game->face_type = 2;
         break;
       default:
         clear();
         draw_hands(game);
-        game_options(game);
+        get_new_face_type(game);
     }
 
+    save_game(game);
     draw_hands(game);
     bet_options(game);
     break;
@@ -600,7 +658,7 @@ void get_new_deck_type(struct Game *game) {
 void game_options(struct Game *game) {
   clear();
   draw_hands(game);
-  printf(" (N) Number of Decks  (T) Deck Type  (B) Back\n");
+  printf(" (N) Number of Decks  (T) Deck Type  (F) Face Type  (B) Back\n");
 
   while (true) {
     char c = (char) getchar();
@@ -611,6 +669,9 @@ void game_options(struct Game *game) {
         break;
       case 't':
         get_new_deck_type(game);
+        break;
+      case 'f':
+        get_new_face_type(game);
         break;
       case 'b':
         clear();
@@ -635,7 +696,6 @@ void bet_options(struct Game *game) {
 
     switch (c) {
       case 'd':
-        deal_new_hand(game);
         break;
       case 'b':
         get_new_bet(game);
@@ -644,6 +704,7 @@ void bet_options(struct Game *game) {
         game_options(game);
         break;
       case 'q':
+        game->quitting = 1;
         clear();
         break;
       default:
@@ -808,16 +869,74 @@ void buffer_on(struct termios *term) {
   tcsetattr(STDIN_FILENO, TCSANOW, term);
 }
 
+void build_new_shoe(struct Game *game) {
+  switch (game->deck_type) {
+    case 2:
+      new_aces(game);
+      break;
+    case 3:
+      new_jacks(game);
+      break;
+    case 4:
+      new_aces_jacks(game);
+      break;
+    case 5:
+      new_sevens(game);
+      break;
+    case 6:
+      new_eights(game);
+      break;
+    default:
+      new_regular(game);
+  }
+}
+
 void new_regular(struct Game *game) {
-  struct Card c;
+  const unsigned values[13] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+  new_shoe(game, values, 13);
+}
+
+void new_aces(struct Game *game) {
+  const unsigned values[1] = {0};
+  new_shoe(game, values, 1);
+}
+
+void new_aces_jacks(struct Game *game) {
+  const unsigned values[2] = {0, 10};
+  new_shoe(game, values, 2);
+}
+
+void new_jacks(struct Game *game) {
+  const unsigned values[1] = {10};
+  new_shoe(game, values, 1);
+}
+
+void new_sevens(struct Game *game) {
+  const unsigned values[1] = {6};
+  new_shoe(game, values, 1);
+}
+
+void new_eights(struct Game *game) {
+  const unsigned values[1] = {7};
+  new_shoe(game, values, 1);
+}
+
+void new_shoe(struct Game *game, const unsigned *values, unsigned values_count) {
+  unsigned total_cards = get_total_cards(game);
   game->shoe.num_cards = 0;
 
-  for (unsigned deck = 0; deck < game->num_decks; ++deck) {
+  while (game->shoe.num_cards < total_cards) {
     for (unsigned suit = 0; suit < 4; ++suit) {
-      c.suit = suit;
+      if (game->shoe.num_cards >= total_cards) {
+        break;
+      }
 
-      for (unsigned value = 0; value < 13; ++value) {
-        c.value = value;
+      for (unsigned i = 0; i < values_count; ++i) {
+        if (game->shoe.num_cards >= total_cards) {
+          break;
+        }
+
+        struct Card c = {.suit = suit, .value = values[i]};
         game->shoe.cards[game->shoe.num_cards++] = c;
       }
     }
@@ -826,68 +945,6 @@ void new_regular(struct Game *game) {
   shuffle(&game->shoe);
 }
 
-void new_aces(struct Game *game) {
-  struct Card c = {.value = 0};
-  game->shoe.num_cards = 0;
-
-  for (unsigned deck = 0; deck < game->num_decks * 5; ++deck) {
-    for (unsigned suit = 0; suit < 4; ++suit) {
-      c.suit = suit;
-      game->shoe.cards[game->shoe.num_cards++] = c;
-    }
-  }
-}
-
-void new_aces_jacks(struct Game *game) {
-  struct Card c1 = {.value = 0};
-  struct Card c2 = {.value = 10};
-  game->shoe.num_cards = 0;
-
-  for (unsigned deck = 0; deck < game->num_decks * 4; ++deck) {
-    for (unsigned suit = 0; suit < 4; ++suit) {
-      c1.suit = suit;
-      game->shoe.cards[game->shoe.num_cards++] = c1;
-
-      c2.suit = suit;
-      game->shoe.cards[game->shoe.num_cards++] = c2;
-    }
-  }
-
-  shuffle(&game->shoe);
-}
-
-void new_jacks(struct Game *game) {
-  struct Card c = {.value = 10};
-  game->shoe.num_cards = 0;
-
-  for (unsigned deck = 0; deck < game->num_decks * 5; ++deck) {
-    for (unsigned suit = 0; suit < 4; ++suit) {
-      c.suit = suit;
-      game->shoe.cards[game->shoe.num_cards++] = c;
-    }
-  }
-}
-
-void new_sevens(struct Game *game) {
-  struct Card c = {.value = 6};
-  game->shoe.num_cards = 0;
-
-  for (unsigned deck = 0; deck < game->num_decks * 5; ++deck) {
-    for (unsigned suit = 0; suit < 4; ++suit) {
-      c.suit = suit;
-      game->shoe.cards[game->shoe.num_cards++] = c;
-    }
-  }
-}
-
-void new_eights(struct Game *game) {
-  struct Card c = {.value = 7};
-  game->shoe.num_cards = 0;
-
-  for (unsigned deck = 0; deck < game->num_decks * 5; ++deck) {
-    for (unsigned suit = 0; suit < 4; ++suit) {
-      c.suit = suit;
-      game->shoe.cards[game->shoe.num_cards++] = c;
-    }
-  }
+unsigned get_total_cards(struct Game *game) {
+  return game->num_decks * CARDS_PER_DECK;
 }

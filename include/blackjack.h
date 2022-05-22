@@ -26,7 +26,8 @@ enum HandStatus {
 };
 
 extern const unsigned shuffle_specs[8][2];
-extern const char *const card_faces[14][4];
+extern const char *const faces[14][4];
+extern const char *const faces2[14][4];
 
 struct Card {
   unsigned value;
@@ -63,12 +64,16 @@ struct Game {
   struct DealerHand dealer_hand;
   struct PlayerHand player_hands[MAX_PLAYER_HANDS];
   unsigned num_decks;
+  unsigned deck_type;
+  unsigned face_type;
   unsigned money;
   unsigned current_bet;
   unsigned current_player_hand;
   unsigned total_player_hands;
+  unsigned quitting;
   const unsigned (*shuffle_specs)[2];
-  const char *const (*card_faces)[4];
+  const char *const (*faces)[4];
+  const char *const (*faces2)[4];
 };
 
 bool is_ace(const struct Card *card);
@@ -119,6 +124,8 @@ void deal_card(struct Shoe *shoe, struct Hand *hand);
 
 void play_dealer_hand(struct Game *game);
 
+const char *get_card_face(const struct Game *game, unsigned suit, unsigned value);
+
 void draw_dealer_hand(const struct Game *game);
 
 void player_draw_hand(const struct Game *game, unsigned index);
@@ -160,6 +167,12 @@ void player_split(struct Game *game);
 void player_dbl(struct Game *game);
 
 void player_get_action(struct Game *game);
+
+unsigned get_total_cards(struct Game *game);
+
+void build_new_shoe(struct Game *game);
+
+void new_shoe(struct Game *game, const unsigned *values, unsigned values_count);
 
 void new_regular(struct Game *game);
 

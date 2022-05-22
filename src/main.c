@@ -8,18 +8,24 @@ int main(int argc, char *argv[]) {
 
   struct Game game = {
     .num_decks = 8,
+    .face_type = 1,
+    .deck_type = 1,
     .money = 10000,
     .current_bet = 500,
     .shuffle_specs = shuffle_specs,
-    .card_faces = card_faces
+    .faces = faces,
+    .faces2 = faces2
   };
 
   load_game(&game);
-  new_regular(&game);
 
   struct termios term;
   buffer_off(&term);
-  deal_new_hand(&game);
+
+  while (!game.quitting) {
+    deal_new_hand(&game);
+  }
+
   buffer_on(&term);
 
   return 0;

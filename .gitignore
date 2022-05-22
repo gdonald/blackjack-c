@@ -10,3 +10,5 @@ cmake-build-debug/
 cmake_install.cmake
 Makefile
 Testing
+.DS_Store
+.cmake/
