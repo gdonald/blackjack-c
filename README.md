@@ -30,4 +30,20 @@ Increase your terminal font size to see the cards better:
 
 ## License
 
-blackjack-c is released under the [GNU GENERAL PUBLIC LICENSE Version 2](https://opensource.org/licenses/GPL-2.0)
+[![GitHub](https://img.shields.io/github/license/gdonald/blackjack-c?color=aa0000)](https://github.com/gdonald/blackjack-c/blob/master/LICENSE)
+
+## Alternative Implementations:
+
+I've written Blackjack in several other languages:
+
+- [Ruby](https://github.com/gdonald/console-blackjack-ruby)
+- [Rust](https://github.com/gdonald/console-blackjack-rust)
+- [Typescript](https://github.com/gdonald/blackjack-js)
+- [Raku](https://github.com/gdonald/Console-Blackjack)
+- [Perl](https://github.com/gdonald/console-blackjack-perl)
+- [C++](https://github.com/gdonald/blackjack-cpp)
+- [Crystal](https://github.com/gdonald/blackjack-cr)
+- [Go](https://github.com/gdonald/blackjack-go)
+- [Elixir](https://github.com/gdonald/blackjack-ex)
+- [Python](https://github.com/gdonald/blackjack-py)
+- [C with SDL](https://github.com/gdonald/blackjack-c-sdl)
